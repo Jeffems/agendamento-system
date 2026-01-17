@@ -1,0 +1,38 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id         String   @id @default(uuid())
+  google_id  String   @unique
+  nome       String
+  email      String   @unique
+  avatar     String?
+  created_at DateTime @default(now())
+
+  agendamentos Agendamento[]
+}
+
+model Agendamento {
+  id               String   @id @default(uuid())
+  nome             String
+  sobrenome        String
+  email            String
+  servico          String
+  data_agendamento DateTime
+  status           String   @default("pendente")
+  lembrete_enviado Boolean  @default(false)
+  observacoes      String?
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  usuarioId String
+  usuario   Usuario @relation(fields: [usuarioId], references: [id])
+
+  @@map("agendamentos")
+}
