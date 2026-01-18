@@ -1,5 +1,6 @@
 [build]
 builder = "NIXPACKS"
+rootDirectory = "backend"
 
 [build.env]
 NODE_VERSION = "20"
