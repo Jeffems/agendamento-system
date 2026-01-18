@@ -1,0 +1,12 @@
+{
+    "name": "agendamento-system",
+    "private": true,
+    "scripts": {
+      "start": "cd backend && npm run start",
+      "install": "cd backend && npm install"
+    },
+    "engines": {
+      "node": ">=20"
+    }
+  }
+  
