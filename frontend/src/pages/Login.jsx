@@ -1,6 +1,6 @@
 export default function Login() {
     const handleGoogleLogin = () => {
-      window.location.href = `${backendUrl}/auth/google`;
+      window.location.href = `https://agendamento-system-production.up.railway.app/auth/google`;
     };
   
     return (
