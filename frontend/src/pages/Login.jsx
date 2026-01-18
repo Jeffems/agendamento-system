@@ -1,6 +1,6 @@
 export default function Login() {
     const handleGoogleLogin = () => {
-      window.location.href = "http://localhost:3001/auth/google";
+      window.location.href = `${backendUrl}/auth/google`;
     };
   
     return (
