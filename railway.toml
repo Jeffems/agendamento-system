@@ -1,6 +1,11 @@
 [build]
 builder = "NIXPACKS"
-buildCommand = "cd backend && npm install"
+
+[build.env]
+NODE_VERSION = "20"
+
+[build.command]
+command = "cd backend && npm install"
 
 [deploy]
 startCommand = "cd backend && npm run start"
