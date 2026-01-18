@@ -2,11 +2,5 @@
 builder = "NIXPACKS"
 rootDirectory = "backend"
 
-[build.env]
-NODE_VERSION = "20"
-
-[build.command]
-command = "npm install"
-
 [deploy]
 startCommand = "npm run start"
