@@ -1,7 +1,8 @@
 export default function Login() {
-    const handleGoogleLogin = () => {
-      window.location.href = `https://agendamento-system-production.up.railway.app/auth/google`;
-    };
+  const handleGoogleLogin = () => {
+    const backendUrl = import.meta.env.VITE_BACKEND_URL;
+    window.location.assign(`${backendUrl}/auth/google`);
+  };
   
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-100">
