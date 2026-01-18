@@ -14,8 +14,11 @@ model Usuario {
   email      String   @unique
   avatar     String?
   created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   agendamentos Agendamento[]
+
+  @@map("usuarios")
 }
 
 model Agendamento {
@@ -31,8 +34,8 @@ model Agendamento {
   created_at       DateTime @default(now())
   updated_at       DateTime @updatedAt
 
-  usuarioId String
-  usuario   Usuario @relation(fields: [usuarioId], references: [id])
+  usuarioId String?
+  usuario   Usuario? @relation(fields: [usuarioId], references: [id])
 
   @@map("agendamentos")
 }
