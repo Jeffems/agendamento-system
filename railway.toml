@@ -6,7 +6,7 @@ rootDirectory = "backend"
 NODE_VERSION = "20"
 
 [build.command]
-command = "cd backend && npm install"
+command = "npm install"
 
 [deploy]
-startCommand = "cd backend && npm run start"
+startCommand = "npm run start"
