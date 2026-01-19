@@ -40,15 +40,17 @@ export const obterAgendamento = async (req, res) => {
   }
 };
 
-const data = new Date(dados.data_agendamento);
-if (isNaN(data.getTime())) {
-  return res.status(400).json({ error: "data_agendamento inválida" });
-}
+
 
 export const criarAgendamento = async (req, res) => {
   try {
     const dados = req.body;
-    const usuarioId = req.user.id; // 👈 vem do JWT
+    const usuarioId = req.user.id;
+
+    const data = new Date(dados.data_agendamento);
+    if (isNaN(data.getTime())) {
+      return res.status(400).json({ error: "data_agendamento inválida" });
+    }
 
     const agendamento = await prisma.agendamento.create({
       data: {
@@ -56,15 +58,11 @@ export const criarAgendamento = async (req, res) => {
         sobrenome: dados.sobrenome,
         email: dados.email,
         servico: dados.servico,
-        data_agendamento: new Date(dados.data_agendamento),
+        data_agendamento: data,
         status: dados.status || "pendente",
         observacoes: dados.observacoes || null,
         lembrete_enviado: false,
-
-        // 🔥 VINCULA AO USUÁRIO LOGADO
-        usuario: {
-          connect: { id: usuarioId },
-        },
+        usuarioId: usuarioId, // pode usar direto
       },
     });
 
@@ -74,6 +72,7 @@ export const criarAgendamento = async (req, res) => {
     res.status(500).json({ error: "Erro ao criar agendamento" });
   }
 };
+
 
 export const atualizarAgendamento = async (req, res) => {
   try {
