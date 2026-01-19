@@ -33,6 +33,7 @@ import {
   deletarAgendamento
 } from "../controllers/agendamentoController.js";
 
+import authMiddleware from "../middlewares/authMiddleware.js";
 import { authMiddleware } from "../middlewares/authMiddleware.js";
 
 const router = express.Router(); // ✅ PRIMEIRO declara

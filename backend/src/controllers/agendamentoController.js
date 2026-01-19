@@ -6,54 +6,45 @@ const prisma = new PrismaClient();
 
 export const listarAgendamentos = async (req, res) => {
   try {
+    const usuarioId = req.user.id;
+
     const agendamentos = await prisma.agendamento.findMany({
-      orderBy: { data_agendamento: 'desc' }
+      where: { usuarioId },
+      orderBy: { data_agendamento: "desc" },
     });
+
     res.json(agendamentos);
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao listar agendamentos' });
+    console.error(error);
+    res.status(500).json({ error: "Erro ao listar agendamentos" });
   }
 };
 
 export const obterAgendamento = async (req, res) => {
   try {
     const { id } = req.params;
-    const agendamento = await prisma.agendamento.findUnique({
-      where: { id }
+    const usuarioId = req.user.id;
+
+    const agendamento = await prisma.agendamento.findFirst({
+      where: { id, usuarioId },
     });
-    
+
     if (!agendamento) {
-      return res.status(404).json({ error: 'Agendamento não encontrado' });
+      return res.status(404).json({ error: "Agendamento não encontrado" });
     }
-    
+
     res.json(agendamento);
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao buscar agendamento' });
+    console.error(error);
+    res.status(500).json({ error: "Erro ao buscar agendamento" });
   }
 };
 
-/*export const criarAgendamento = async (req, res) => {
-  try {
-    const dados = req.body;
-    const agendamento = await prisma.agendamento.create({
-      data: {
-        nome: dados.nome,
-        sobrenome: dados.sobrenome,
-        email: dados.email,
-        servico: dados.servico,
-        data_agendamento: new Date(dados.data_agendamento),
-        status: dados.status || 'pendente',
-        observacoes: dados.observacoes || null,
-        lembrete_enviado: false
-      }
-    });
-    res.status(201).json(agendamento);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Erro ao criar agendamento' });
-  }
-};
-*/
+const data = new Date(dados.data_agendamento);
+if (isNaN(data.getTime())) {
+  return res.status(400).json({ error: "data_agendamento inválida" });
+}
+
 export const criarAgendamento = async (req, res) => {
   try {
     const dados = req.body;
@@ -88,9 +79,11 @@ export const atualizarAgendamento = async (req, res) => {
   try {
     const { id } = req.params;
     const dados = req.body;
-    
-    const agendamento = await prisma.agendamento.update({
-      where: { id },
+    const usuarioId = req.user.id;
+
+    // garante que só atualiza se o agendamento for do usuário logado
+    const result = await prisma.agendamento.updateMany({
+      where: { id, usuarioId },
       data: {
         nome: dados.nome,
         sobrenome: dados.sobrenome,
@@ -99,25 +92,42 @@ export const atualizarAgendamento = async (req, res) => {
         data_agendamento: new Date(dados.data_agendamento),
         status: dados.status,
         observacoes: dados.observacoes,
-        lembrete_enviado: dados.lembrete_enviado
-      }
+        lembrete_enviado: dados.lembrete_enviado,
+      },
     });
-    
-    res.json(agendamento);
+
+    if (result.count === 0) {
+      return res.status(404).json({ error: "Agendamento não encontrado" });
+    }
+
+    // opcional: buscar o registro atualizado para retornar
+    const agendamentoAtualizado = await prisma.agendamento.findFirst({
+      where: { id, usuarioId },
+    });
+
+    res.json(agendamentoAtualizado);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Erro ao atualizar agendamento' });
+    res.status(500).json({ error: "Erro ao atualizar agendamento" });
   }
 };
 
 export const deletarAgendamento = async (req, res) => {
   try {
     const { id } = req.params;
-    await prisma.agendamento.delete({
-      where: { id }
+    const usuarioId = req.user.id;
+
+    const result = await prisma.agendamento.deleteMany({
+      where: { id, usuarioId },
     });
-    res.json({ message: 'Agendamento deletado com sucesso' });
+
+    if (result.count === 0) {
+      return res.status(404).json({ error: "Agendamento não encontrado" });
+    }
+
+    res.json({ message: "Agendamento deletado com sucesso" });
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao deletar agendamento' });
+    console.error(error);
+    res.status(500).json({ error: "Erro ao deletar agendamento" });
   }
 };
