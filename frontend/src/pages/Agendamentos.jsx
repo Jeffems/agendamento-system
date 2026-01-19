@@ -151,7 +151,7 @@ export default function Agendamentos() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex flex-col md:flex-row md:items-center  md:justify-between gap-4">
             <div>
               <h1 className="text-4xl font-bold text-slate-900 mb-2">
                 Sistema de Agendamentos
@@ -162,7 +162,7 @@ export default function Agendamentos() {
             </div>
             <button
           onClick={logout}
-          className="bg-red-500 hover:bg-red-600 px-4 py-2 rounded"
+          className="bg-red-500  text-white flex items-center hover:bg-slate-800 px-6 py-3 rounded"
         >
           Sair
         </button>
