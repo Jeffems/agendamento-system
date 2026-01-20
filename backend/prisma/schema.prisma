@@ -13,8 +13,8 @@ model Usuario {
   nome       String
   email      String   @unique
   avatar     String?
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @updatedAt @db.Timestamptz(6)
 
   agendamentos Agendamento[]
 
@@ -27,15 +27,16 @@ model Agendamento {
   sobrenome        String
   email            String
   servico          String
-  data_agendamento DateTime
+  data_agendamento DateTime @db.Timestamptz(6)
   status           String   @default("pendente")
   lembrete_enviado Boolean  @default(false)
   observacoes      String?
-  created_at       DateTime @default(now())
-  updated_at       DateTime @updatedAt
+  created_at       DateTime @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime @updatedAt @db.Timestamptz(6)
 
   usuarioId String?
   usuario   Usuario? @relation(fields: [usuarioId], references: [id])
 
   @@map("agendamentos")
 }
+
