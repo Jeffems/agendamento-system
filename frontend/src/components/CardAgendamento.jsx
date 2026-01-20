@@ -10,7 +10,7 @@ import {
   AlertCircle,
   MessageCircle
 } from "lucide-react";
-import { format, parseISO } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
 import { ptBR } from "date-fns/locale";
 import { motion } from "framer-motion";
 
@@ -41,18 +41,36 @@ const statusConfig = {
   }
 };
 
-export default function CardAgendamento({ agendamento, onEditar, onExcluir, onMudarStatus, onEnviarLembrete }) {
+export default function CardAgendamento({
+  agendamento,
+  onEditar,
+  onExcluir,
+  onMudarStatus,
+  onEnviarLembrete
+}) {
   const [menuAberto, setMenuAberto] = React.useState(false);
   const status = statusConfig[agendamento.status] || statusConfig.pendente;
   const StatusIcon = status.icon;
 
+  // Defina o timezone que você quer exibir (Cuiabá/MT)
+  const TIMEZONE = "America/Cuiaba";
+
   const formatarData = (dataString) => {
     try {
-      const data = parseISO(dataString);
+      if (!dataString) {
+        return { dia: "Data inválida", hora: "", diaSemana: "" };
+      }
+
+      // Aceita ISO com Z (UTC) ou sem Z (mas o ideal é vir com Z do backend)
+      const dateObj = new Date(dataString);
+      if (Number.isNaN(dateObj.getTime())) {
+        return { dia: "Data inválida", hora: "", diaSemana: "" };
+      }
+
       return {
-        dia: format(data, "dd 'de' MMMM", { locale: ptBR }),
-        hora: format(data, "HH:mm", { locale: ptBR }),
-        diaSemana: format(data, "EEEE", { locale: ptBR })
+        dia: formatInTimeZone(dateObj, TIMEZONE, "dd 'de' MMMM", { locale: ptBR }),
+        hora: formatInTimeZone(dateObj, TIMEZONE, "HH:mm", { locale: ptBR }),
+        diaSemana: formatInTimeZone(dateObj, TIMEZONE, "EEEE", { locale: ptBR })
       };
     } catch {
       return { dia: "Data inválida", hora: "", diaSemana: "" };
@@ -84,42 +102,50 @@ export default function CardAgendamento({ agendamento, onEditar, onExcluir, onMu
             </div>
             <p className="text-sm text-slate-500 capitalize">{diaSemana}</p>
           </div>
+
           <div className="relative">
             <button
               onClick={() => setMenuAberto(!menuAberto)}
               className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+              type="button"
             >
               <MoreVertical className="w-4 h-4" />
             </button>
+
             {menuAberto && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-10">
                 <button
                   onClick={() => { onEditar(agendamento); setMenuAberto(false); }}
                   className="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm"
+                  type="button"
                 >
                   Editar
                 </button>
                 <button
                   onClick={() => { onMudarStatus(agendamento, "confirmado"); setMenuAberto(false); }}
                   className="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm"
+                  type="button"
                 >
                   Marcar como Confirmado
                 </button>
                 <button
                   onClick={() => { onMudarStatus(agendamento, "concluido"); setMenuAberto(false); }}
                   className="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm"
+                  type="button"
                 >
                   Marcar como Concluído
                 </button>
                 <button
                   onClick={() => { onEnviarLembrete(agendamento); setMenuAberto(false); }}
                   className="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm"
+                  type="button"
                 >
                   Enviar Lembrete por Email
                 </button>
                 <button
                   onClick={() => { onExcluir(agendamento); setMenuAberto(false); }}
                   className="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm text-red-600"
+                  type="button"
                 >
                   Excluir
                 </button>
@@ -159,8 +185,8 @@ export default function CardAgendamento({ agendamento, onEditar, onExcluir, onMu
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs text-slate-500 font-medium">Email</p>
-              <a 
-                href__={`mailto:${agendamento.email}`}
+              <a
+                href={`mailto:${agendamento.email}`}
                 className="text-sm font-semibold text-slate-900 hover:text-slate-700 hover:underline break-all"
               >
                 {agendamento.email}
