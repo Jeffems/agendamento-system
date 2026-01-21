@@ -53,7 +53,9 @@ export default function CardAgendamento({
   const StatusIcon = status.icon;
 
   // Defina o timezone que você quer exibir (Cuiabá/MT)
-  const TIMEZONE = "America/Cuiaba";
+  //const TIMEZONE = "America/Cuiaba";
+  const TIMEZONE = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
 
   const formatarData = (dataString) => {
     try {
