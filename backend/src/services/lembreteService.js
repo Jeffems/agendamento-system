@@ -5,22 +5,38 @@ import nodemailer from "nodemailer";
 const prisma = new PrismaClient();
 
 // Configure seu provedor de email aqui
+//const transporter = nodemailer.createTransport({
+//  host: process.env.SMTP_HOST || "smtp.gmail.com",
+//  port: process.env.SMTP_PORT || 587,
+//  secure: false,
+//  auth: {
+//    user: process.env.SMTP_USER,
+//    pass: process.env.SMTP_PASS,
+//  },
+//});
+const smtpHost = process.env.SMTP_HOST || "smtp.gmail.com";
+const smtpPort = Number(process.env.SMTP_PORT || 587);
+
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || "smtp.gmail.com",
-  port: process.env.SMTP_PORT || 587,
-  secure: false,
+  host: smtpHost,
+  port: smtpPort,
+  secure: smtpPort === 465,      // 465 = SSL
+  requireTLS: smtpPort === 587,  // 587 = STARTTLS
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
+  connectionTimeout: 20000,
+  greetingTimeout: 20000,
+  socketTimeout: 20000,
 });
-
-async function enviarEmailLembrete(agendamento) {
+  async function enviarEmailLembrete(agendamento) {
   const dataAgendamento = new Date(agendamento.data_agendamento);
   const hora = dataAgendamento.toLocaleTimeString("pt-BR", {
     hour: "2-digit",
     minute: "2-digit",
   });
+
 
   const htmlEmail = `
     <!DOCTYPE html>
