@@ -132,7 +132,7 @@ async function enviarLembretes() {
 
 export function iniciarCronLembretes() {
   // Executa todo dia às 10:00 da manhã
-  cron.schedule("* * * * *", () => {
+  cron.schedule("0 10 * * *", () => {
     console.log("🔔 Executando job de lembretes por email...");
     enviarLembretes();
   });
