@@ -67,3 +67,7 @@ iniciarCronLembretes();
 app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
 });
+
+import { executarLembretesAgora } from "./services/lembreteService.js";
+
+executarLembretesAgora();
