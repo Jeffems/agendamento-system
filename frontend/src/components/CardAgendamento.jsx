@@ -13,6 +13,8 @@ import {
 import { formatInTimeZone } from "date-fns-tz";
 import { ptBR } from "date-fns/locale";
 import { motion } from "framer-motion";
+import { buildWhatsAppReminderLink, openWhatsApp } from "../utils/whatsapp";
+
 
 const statusConfig = {
   pendente: {
@@ -144,6 +146,21 @@ export default function CardAgendamento({
                 >
                   Enviar Lembrete por Email
                 </button>
+
+                <button
+  onClick={() => {
+    const url = buildWhatsAppReminderLink({ agendamento, timezone: "America/Cuiaba" });
+    openWhatsApp(url);
+    setMenuAberto(false);
+  }}
+  className="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm flex items-center gap-2"
+  type="button"
+>
+  <MessageCircle className="w-4 h-4" />
+  Lembrar via WhatsApp
+</button>
+
+
                 <button
                   onClick={() => { onExcluir(agendamento); setMenuAberto(false); }}
                   className="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm text-red-600"
