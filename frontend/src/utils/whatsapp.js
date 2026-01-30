@@ -18,3 +18,7 @@ export function buildWhatsAppReminderLink({ agendamento }) {
 
   return `https://wa.me/?text=${encodeURIComponent(msg)}`;
 }
+
+export function openWhatsApp(url) {
+  window.open(url, "_blank", "noopener,noreferrer");
+}
