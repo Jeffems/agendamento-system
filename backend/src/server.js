@@ -69,8 +69,10 @@ app.listen(PORT, async () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 
   // teste manual
-  if (process.env.TESTAR_LEMBRETES === "true") {
-    console.log("🚀 Executando teste manual...");
-    await executarLembretesAgora();
+  //if (process.env.TESTAR_LEMBRETES === "true") {
+  //  console.log("🚀 Executando teste manual...");
+   // await executarLembretesAgora();
   }
-});
+);
+
+executarLembretesAgora();
