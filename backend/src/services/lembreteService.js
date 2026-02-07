@@ -144,6 +144,8 @@ export function iniciarCronLembretes() {
 import cron from "node-cron";
 import { PrismaClient } from "@prisma/client";
 import { Resend } from "resend";
+import { formatInTimeZone } from "date-fns-tz";
+import { ptBR } from "date-fns/locale";
 
 const prisma = new PrismaClient();
 
@@ -161,10 +163,12 @@ async function enviarEmailLembrete(agendamento) {
   }
 
   const dataAgendamento = new Date(agendamento.data_agendamento);
-  const hora = dataAgendamento.toLocaleTimeString("pt-BR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  const TZ = process.env.APP_TIMEZONE || "America/Cuiaba";
+
+  const hora = formatInTimeZone(dataAgendamento, TZ, "HH:mm", { locale: ptBR });
+
+  const dataFmt = formatInTimeZone(dataAgendamento, TZ, "dd/MM/yyyy", { locale: ptBR });
+
 
   const htmlEmail = `
     <!DOCTYPE html>
@@ -183,7 +187,7 @@ async function enviarEmailLembrete(agendamento) {
       <div class="container">
         <h2>🔔 Lembrete de Agendamento</h2>
         <p>Olá <strong>${agendamento.nome} ${agendamento.sobrenome}</strong>,</p>
-        <p>Este é um lembrete de que você tem um agendamento marcado para <strong>amanhã às ${hora}</strong>.</p>
+        <p>Este é um lembrete de que você tem um agendamento marcado para <strong>${dataFmt} às ${hora}</strong>.</p>
         <div class="info-box">
           <p style="margin: 5px 0;"><strong>📋 Serviço:</strong> ${agendamento.servico}</p>
           ${
