@@ -40,6 +40,7 @@ import "./auth/passport.js"; // importa e registra a estratégia
 import agendamentoRoutes from "./routes/agendamentoRoutes.js";
 import authRoutes from "./auth/authRoutes.js";
 import { iniciarCronLembretes } from "./services/lembreteService.js";
+import { executarLembretesAgora } from "./services/lembreteService.js";
 
 dotenv.config();
 
@@ -69,3 +70,10 @@ app.listen(PORT, () => {
 });
 
 
+app.listen(PORT, async () => {
+  console.log(`Servidor rodando na porta ${PORT}`);
+
+  // 🔥 TESTE MANUAL — REMOVER DEPOIS
+  console.log("🚀 Executando teste manual de lembretes...");
+  await executarLembretesAgora();
+});
