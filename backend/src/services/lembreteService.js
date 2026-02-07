@@ -146,7 +146,7 @@ import { PrismaClient } from "@prisma/client";
 import { Resend } from "resend";
 import { formatInTimeZone } from "date-fns-tz";
 import { ptBR } from "date-fns/locale";
-import { zonedTimeToUtc } from "date-fns-tz";
+import { fromZonedTime } from "date-fns-tz";
 
 const prisma = new PrismaClient();
 
@@ -228,7 +228,7 @@ async function enviarLembretes() {
 const hojeNoTZ = formatInTimeZone(new Date(), TZ, "yyyy-MM-dd");
 
 // cria amanhã 00:00 no timezone e converte para UTC
-const amanha00Utc = zonedTimeToUtc(`${hojeNoTZ}T00:00:00`, TZ);
+const amanha00Utc = fromZonedTime(`${hojeNoTZ}T00:00:00`, TZ);
 amanha00Utc.setUTCDate(amanha00Utc.getUTCDate() + 1);
 
 // cria depois de amanhã 00:00 UTC
