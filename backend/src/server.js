@@ -75,4 +75,4 @@ app.listen(PORT, async () => {
   }
 );
 
-executarLembretesAgora();
+//executarLembretesAgora();
