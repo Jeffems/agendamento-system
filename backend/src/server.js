@@ -65,15 +65,12 @@ app.get("/health", (req, res) => {
 // Cron
 iniciarCronLembretes();
 
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor rodando na porta ${PORT}`);
-});
-
-
 app.listen(PORT, async () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 
-  // 🔥 TESTE MANUAL — REMOVER DEPOIS
-  console.log("🚀 Executando teste manual de lembretes...");
-  await executarLembretesAgora();
+  // teste manual
+  if (process.env.TESTAR_LEMBRETES === "true") {
+    console.log("🚀 Executando teste manual...");
+    await executarLembretesAgora();
+  }
 });
