@@ -146,6 +146,7 @@ import { PrismaClient } from "@prisma/client";
 import { Resend } from "resend";
 import { formatInTimeZone } from "date-fns-tz";
 import { ptBR } from "date-fns/locale";
+import { zonedTimeToUtc } from "date-fns-tz";
 
 const prisma = new PrismaClient();
 
@@ -223,18 +224,22 @@ async function enviarEmailLembrete(agendamento) {
 
 async function enviarLembretes() {
   try {
-    const amanha = new Date();
-    amanha.setDate(amanha.getDate() + 1);
-    amanha.setHours(0, 0, 0, 0);
+// pega a data de hoje no timezone do sistema
+const hojeNoTZ = formatInTimeZone(new Date(), TZ, "yyyy-MM-dd");
 
-    const depoisDeAmanha = new Date(amanha);
-    depoisDeAmanha.setDate(depoisDeAmanha.getDate() + 1);
+// cria amanhã 00:00 no timezone e converte para UTC
+const amanha00Utc = zonedTimeToUtc(`${hojeNoTZ}T00:00:00`, TZ);
+amanha00Utc.setUTCDate(amanha00Utc.getUTCDate() + 1);
+
+// cria depois de amanhã 00:00 UTC
+const depoisDeAmanha00Utc = new Date(amanha00Utc);
+depoisDeAmanha00Utc.setUTCDate(depoisDeAmanha00Utc.getUTCDate() + 1);
 
     const agendamentos = await prisma.agendamento.findMany({
       where: {
         data_agendamento: {
-          gte: amanha,
-          lt: depoisDeAmanha,
+          gte: amanha00Utc,
+          lt:  depoisDeAmanha00Utc,
         },
         lembrete_enviado: false,
         status: {
