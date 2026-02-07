@@ -141,7 +141,7 @@ export function iniciarCronLembretes() {
 }
 */}
 
-import cron from "node-cron";
+{/* import cron from "node-cron";
 import { PrismaClient } from "@prisma/client";
 import { Resend } from "resend";
 import { formatInTimeZone } from "date-fns-tz";
@@ -298,6 +298,179 @@ export function iniciarCronLembretes() {
 }
 
 // Opcional: export para teste manual
+export async function executarLembretesAgora() {
+  return enviarLembretes();
+}
+*/}
+
+import cron from "node-cron";
+import { PrismaClient } from "@prisma/client";
+import { Resend } from "resend";
+import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
+import { ptBR } from "date-fns/locale";
+
+const prisma = new PrismaClient();
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+const TZ = process.env.APP_TIMEZONE || "America/Cuiaba";
+
+function getFromEmail() {
+  return process.env.EMAIL_FROM || "onboarding@resend.dev";
+}
+
+async function enviarEmailLembrete(agendamento) {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error("RESEND_API_KEY não configurada");
+  }
+  if (!agendamento.email) {
+    // segurança extra
+    return;
+  }
+
+  const dataAgendamento = new Date(agendamento.data_agendamento);
+
+  // ✅ hora e data no timezone do app
+  const hora = formatInTimeZone(dataAgendamento, TZ, "HH:mm", { locale: ptBR });
+  const dataFmt = formatInTimeZone(dataAgendamento, TZ, "dd/MM/yyyy", { locale: ptBR });
+
+  const htmlEmail = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <style>
+        body { font-family: Arial, sans-serif; background-color: #f8fafc; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; }
+        h2 { color: #0f172a; }
+        .info-box { background-color: #f1f5f9; padding: 15px; border-radius: 8px; margin: 20px 0; }
+        .footer { margin-top: 30px; color: #64748b; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <h2>🔔 Lembrete de Agendamento</h2>
+        <p>Olá <strong>${agendamento.nome} ${agendamento.sobrenome}</strong>,</p>
+        <p>Este é um lembrete de que você tem um agendamento marcado para <strong>${dataFmt} às ${hora}</strong>.</p>
+        <div class="info-box">
+          <p style="margin: 5px 0;"><strong>📋 Serviço:</strong> ${agendamento.servico}</p>
+          ${
+            agendamento.observacoes
+              ? `<p style="margin: 5px 0;"><strong>📝 Observações:</strong> ${agendamento.observacoes}</p>`
+              : ""
+          }
+        </div>
+        <p>Qualquer dúvida, entre em contato conosco.</p>
+        <div class="footer">
+          <p>Atenciosamente,<br><strong>Equipe de Agendamentos</strong></p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const from = `Sistema de Agendamentos <${getFromEmail()}>`;
+
+  const resp = await resend.emails.send({
+    from,
+    to: agendamento.email,
+    subject: "🔔 Lembrete: Agendamento",
+    html: htmlEmail,
+  });
+
+  if (resp?.error) {
+    throw new Error(resp.error.message || "Falha ao enviar email (Resend)");
+  }
+
+  return resp;
+}
+
+function getJanelaAmanhaUtc() {
+  // Data de hoje no TZ (yyyy-MM-dd)
+  const hojeNoTZ = formatInTimeZone(new Date(), TZ, "yyyy-MM-dd");
+
+  // Amanhã 00:00 no TZ -> UTC
+  const amanha00Utc = fromZonedTime(`${hojeNoTZ}T00:00:00`, TZ);
+  amanha00Utc.setUTCDate(amanha00Utc.getUTCDate() + 1);
+
+  // Depois de amanhã 00:00 UTC
+  const depoisDeAmanha00Utc = new Date(amanha00Utc);
+  depoisDeAmanha00Utc.setUTCDate(depoisDeAmanha00Utc.getUTCDate() + 1);
+
+  return { amanha00Utc, depoisDeAmanha00Utc };
+}
+
+async function enviarLembretes() {
+  try {
+    console.log("🔔 enviarLembretes() chamado | TZ =", TZ);
+
+    const { amanha00Utc, depoisDeAmanha00Utc } = getJanelaAmanhaUtc();
+
+    console.log("📅 Janela UTC:", amanha00Utc.toISOString(), "->", depoisDeAmanha00Utc.toISOString());
+
+    const agendamentos = await prisma.agendamento.findMany({
+      where: {
+        data_agendamento: {
+          gte: amanha00Utc,
+          lt: depoisDeAmanha00Utc,
+        },
+        lembrete_enviado: false,
+        status: {
+          in: ["pendente", "confirmado"],
+        },
+        email: { not: null },
+        NOT: { email: "" }, // opcional, mas recomendo
+      },
+    });
+
+    console.log("🔎 Elegíveis encontrados:", agendamentos.length);
+
+    let enviados = 0;
+    let falhas = 0;
+
+    for (const agendamento of agendamentos) {
+      if (!agendamento.email) continue;
+
+      try {
+        const result = await enviarEmailLembrete(agendamento);
+
+        await prisma.agendamento.update({
+          where: { id: agendamento.id },
+          data: { lembrete_enviado: true },
+        });
+
+        enviados++;
+        console.log(
+          `✅ Email enviado (Resend) para ${agendamento.email}`,
+          result?.data?.id || ""
+        );
+      } catch (error) {
+        falhas++;
+        console.error(
+          `❌ Erro ao enviar email (Resend) para ${agendamento.email}:`,
+          error
+        );
+      }
+    }
+
+    console.log(`📧 Lembretes: ${enviados} enviados, ${falhas} falharam, ${agendamentos.length} elegíveis`);
+  } catch (error) {
+    console.error("❌ Erro ao processar lembretes:", error);
+  }
+}
+
+export function iniciarCronLembretes() {
+  cron.schedule(
+    "0 10 * * *",
+    () => {
+      console.log("🔔 Executando job de lembretes por email (Resend)...");
+      enviarLembretes();
+    },
+    { timezone: TZ }
+  );
+
+  console.log("⏰ Cron de lembretes iniciado (Resend) (executa às 10:00 diariamente)");
+}
+
 export async function executarLembretesAgora() {
   return enviarLembretes();
 }
