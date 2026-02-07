@@ -219,8 +219,6 @@ async function enviarEmailLembrete(agendamento) {
 
 async function enviarLembretes() {
   try {
-    // "Amanhã" baseado no horário do servidor.
-    // Se você quiser fixar timezone Brasil depois, eu ajusto com date-fns-tz.
     const amanha = new Date();
     amanha.setDate(amanha.getDate() + 1);
     amanha.setHours(0, 0, 0, 0);
@@ -238,10 +236,19 @@ async function enviarLembretes() {
         status: {
           in: ["pendente", "confirmado"],
         },
+        email: { not: null }, // ✅ NOVO: só pega quem tem email
+        // se você tiver registros antigos com email "", dá pra reforçar assim:
+        // NOT: { email: "" },
       },
     });
 
+    let enviados = 0;
+    let falhas = 0;
+
     for (const agendamento of agendamentos) {
+      // ✅ Segurança extra (caso algum registro venha sem email)
+      if (!agendamento.email) continue;
+
       try {
         const result = await enviarEmailLembrete(agendamento);
 
@@ -250,17 +257,26 @@ async function enviarLembretes() {
           data: { lembrete_enviado: true },
         });
 
-        console.log(`✅ Email enviado (Resend) para ${agendamento.email}`, result?.data?.id || "");
+        enviados++;
+        console.log(
+          `✅ Email enviado (Resend) para ${agendamento.email}`,
+          result?.data?.id || ""
+        );
       } catch (error) {
-        console.error(`❌ Erro ao enviar email (Resend) para ${agendamento.email}:`, error);
+        falhas++;
+        console.error(
+          `❌ Erro ao enviar email (Resend) para ${agendamento.email}:`,
+          error
+        );
       }
     }
 
-    console.log(`📧 ${agendamentos.length} lembretes processados`);
+    console.log(`📧 Lembretes: ${enviados} enviados, ${falhas} falharam, ${agendamentos.length} elegíveis`);
   } catch (error) {
     console.error("❌ Erro ao processar lembretes:", error);
   }
 }
+
 
 export function iniciarCronLembretes() {
   // Executa todo dia às 10:00

@@ -25,7 +25,8 @@ model Agendamento {
   id               String   @id @default(uuid())
   nome             String
   sobrenome        String
-  email            String
+  email            String?  // <- agora opcional
+  contato          String?  // <- novo campo opcional (whatsapp/telefone)
   servico          String
   data_agendamento DateTime @db.Timestamptz(6)
   status           String   @default("pendente")
