@@ -115,7 +115,7 @@
   
                 <div className="pt-4 flex items-center gap-2 text-white/80 text-sm">
                   <CheckCircle2 className="h-4 w-4" />
-                  Lembretes automáticos por e-mail e WhatsApp manual
+                  Lembretes automáticos 
                 </div>
               </div>
             </div>
@@ -131,7 +131,7 @@
                   <Calendar className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-slate-900 font-bold text-lg">Agendify</p>
+                  <p className="text-slate-900 font-bold text-lg">Evemark</p>
                   <p className="text-slate-500 text-sm">Sistema de agendamentos</p>
                 </div>
               </div>
@@ -164,7 +164,7 @@
             </div>
   
             <p className="text-center text-xs text-slate-400 mt-4">
-              © {new Date().getFullYear()} Agendify
+              © {new Date().getFullYear()} Evemark
             </p>
           </div>
         </div>
