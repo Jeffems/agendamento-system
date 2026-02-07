@@ -149,35 +149,40 @@ export default function Agendamentos() {
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex flex-col md:flex-row md:items-center  md:justify-between gap-4">
-            <div>
-              <h1 className="text-4xl font-bold text-slate-900 mb-2">
-                Sistema de Agendamentos
-              </h1>
-              <p className="text-slate-600">
-                Gerencie seus agendamentos de forma profissional
-              </p>
-            </div>
-            <button
-          onClick={logout}
-          className="bg-red-500  text-white flex items-center hover:bg-slate-800 px-6 py-3 rounded"
-        >
-          Sair
-        </button>
-            <button
-              onClick={() => {
-                setAgendamentoEditando(null);
-                setMostrarFormulario(true);
-              }}
-              className="bg-slate-900 hover:bg-slate-800 text-white px-6 py-3 rounded-lg flex items-center gap-2 transition-colors"
-            >
-              <Plus className="w-5 h-5" />
-              Novo Agendamento
-            </button>
-          </div>
-        </div>
+{/* Header */}
+<div className="mb-8">
+  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div>
+      <h1 className="text-4xl font-bold text-slate-900 mb-2">
+        Sistema de Agendamentos
+      </h1>
+      <p className="text-slate-600">
+        Gerencie seus agendamentos de forma profissional
+      </p>
+    </div>
+
+    {/* AÇÕES (canto direito) */}
+    <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-end">
+      <button
+        onClick={logout}
+        className="bg-red-500 text-white flex items-center hover:bg-red-600 px-6 py-3 rounded-lg transition-colors"
+      >
+        Sair
+      </button>
+
+      <button
+        onClick={() => {
+          setAgendamentoEditando(null);
+          setMostrarFormulario(true);
+        }}
+        className="bg-slate-900 hover:bg-slate-800 text-white px-6 py-3 rounded-lg flex items-center gap-2 transition-colors"
+      >
+        <Plus className="w-5 h-5" />
+        Novo Agendamento
+      </button>
+    </div>
+  </div>
+</div>
 
         {/* Estatísticas */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
