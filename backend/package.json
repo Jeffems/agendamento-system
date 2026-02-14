@@ -13,7 +13,8 @@
         "prisma:studio": "prisma studio"
     },
     "dependencies": {
-        "@prisma/client": "^5.7.1",
+        "@prisma/client": "^5.22.0",
+        "bcrypt": "^6.0.0",
         "cookie-parser": "^1.4.7",
         "cors": "^2.8.5",
         "date-fns": "^4.1.0",
@@ -25,7 +26,8 @@
         "nodemailer": "^6.9.7",
         "passport": "^0.7.0",
         "passport-google-oauth20": "^2.0.0",
-        "resend": "^6.8.0"
+        "resend": "^6.8.0",
+        "zod": "^4.3.6"
     },
     "devDependencies": {
         "nodemon": "^3.0.2",
