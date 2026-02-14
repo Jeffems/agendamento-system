@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import api from "../services/api";
-import TermsModal from "../components/termsModal";
+import TermsModal from "../components/TermsModal";
 
 export default function Register() {
   const navigate = useNavigate();
