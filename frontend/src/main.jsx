@@ -4,7 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Register from "./pages/Register";
 import App from "./App";
 import Login from "./pages/Login";
-import AuthCallback from "./pages/AuthCallback";
+import AuthCallback from "./pages/AuthCallback.jsx";
 import PrivateRoute from "./components/PrivateRoute";
 
 import "./index.css";
