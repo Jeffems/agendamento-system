@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import api from "../services/api";
-import TermsModal from "../components/termsModal";
+import TermsModal from "../components/TermsModal";
 
 function getTokenFromUrl() {
   // 1) Suporta callback atual: /auth/callback?token=...
