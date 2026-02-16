@@ -2,7 +2,21 @@ import express from "express";
 import passport from "passport";
 import jwt from "jsonwebtoken";
 
+import {
+  register,
+  login,
+  me,
+  acceptTerms,
+} from "../controllers/authController.js";
+import { authMiddleware } from "../middlewares/authMiddleware.js";
+
 const router = express.Router();
+
+// Auth manual
+router.post("/register", register);
+router.post("/login", login);
+router.get("/me", authMiddleware, me);
+router.post("/accept-terms", authMiddleware, acceptTerms);
 
 // Inicia login com Google
 router.get(
@@ -30,9 +44,7 @@ router.get(
     );
 
     // Redireciona para o frontend com o token
-    res.redirect(
-      `${process.env.FRONTEND_URL}/auth/callback?token=${token}`
-    );
+    res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}`);
   }
 );
 
