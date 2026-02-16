@@ -8,7 +8,7 @@ import {
   me,
   acceptTerms,
 } from "../controllers/authManualController.js";
-import authMiddleware from "../middlewares/authMiddleware.js";
+import { authMiddleware } from "../middlewares/authMiddleware.js";
 
 
 const router = express.Router();
