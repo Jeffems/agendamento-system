@@ -8,7 +8,7 @@ const PRIVACY_VERSION = process.env.PRIVACY_VERSION || "2026-02-10";
 
 function signToken(user) {
   return jwt.sign(
-    { userId: user.id, email: user.email },
+    { id: user.id, email: user.email, nome: user.nome },
     process.env.JWT_SECRET,
     { expiresIn: "7d" }
   );

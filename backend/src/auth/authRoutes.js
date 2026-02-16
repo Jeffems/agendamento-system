@@ -1,8 +1,21 @@
 import express from "express";
 import passport from "passport";
 import jwt from "jsonwebtoken";
+import { Router } from "express";
+import {
+  register,
+  login,
+  me,
+  acceptTerms,
+} from "../controllers/authManualController.js";
+import authMiddleware from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
+
+router.post("/register", register);
+router.post("/login", login);
+router.get("/me", authMiddleware, me);
+router.post("/accept-terms", authMiddleware, acceptTerms);
 
 // Inicia login com Google
 router.get(
@@ -35,5 +48,15 @@ router.get(
     );
   }
 );
+
+
+// ====== MANUAL ======
+router.post("/register", register);
+router.post("/login", login);
+
+// ====== TERMOS / PERFIL ======
+router.get("/me", authMiddleware, me);
+router.post("/accept-terms", authMiddleware, acceptTerms);
+
 
 export default router;
