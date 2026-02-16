@@ -1,7 +1,10 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
-import prisma from "../prisma/client.js";
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
 
 const TERMS_VERSION = process.env.TERMS_VERSION || "2026-02-10";
 const PRIVACY_VERSION = process.env.PRIVACY_VERSION || "2026-02-10";
