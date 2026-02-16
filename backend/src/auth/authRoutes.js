@@ -10,8 +10,17 @@ import {
 } from "../controllers/authManualController.js";
 import authMiddleware from "../middlewares/authMiddleware.js";
 
+import {
+  register,
+  login,
+  me,
+  acceptTerms,
+} from "../controllers/authController.js";
+import { authMiddleware } from "../middlewares/authMiddleware.js";
+
 const router = express.Router();
 
+// Auth manual
 router.post("/register", register);
 router.post("/login", login);
 router.get("/me", authMiddleware, me);
@@ -43,9 +52,7 @@ router.get(
     );
 
     // Redireciona para o frontend com o token
-    res.redirect(
-      `${process.env.FRONTEND_URL}/auth/callback?token=${token}`
-    );
+    res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}`);
   }
 );
 
