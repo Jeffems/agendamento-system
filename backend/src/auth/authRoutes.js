@@ -10,13 +10,6 @@ import {
 } from "../controllers/authManualController.js";
 import authMiddleware from "../middlewares/authMiddleware.js";
 
-import {
-  register,
-  login,
-  me,
-  acceptTerms,
-} from "../controllers/authController.js";
-import { authMiddleware } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
