@@ -1,6 +1,14 @@
 import express from "express";
 import passport from "passport";
 import jwt from "jsonwebtoken";
+import { Router } from "express";
+import {
+  register,
+  login,
+  me,
+  acceptTerms,
+} from "../controllers/authManualController.js";
+import authMiddleware from "../middlewares/authMiddleware.js";
 
 import {
   register,
@@ -47,5 +55,15 @@ router.get(
     res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}`);
   }
 );
+
+
+// ====== MANUAL ======
+router.post("/register", register);
+router.post("/login", login);
+
+// ====== TERMOS / PERFIL ======
+router.get("/me", authMiddleware, me);
+router.post("/accept-terms", authMiddleware, acceptTerms);
+
 
 export default router;
