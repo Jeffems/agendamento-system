@@ -29,11 +29,11 @@ api.interceptors.request.use((config) => {
 });
 
 export const agendamentosAPI = {
-  listar: () => api.get("/agendamentos"),
-  obter: (id) => api.get(`/agendamentos/${id}`),
-  criar: (dados) => api.post("/agendamentos", dados),
-  atualizar: (id, dados) => api.put(`/agendamentos/${id}`, dados),
-  deletar: (id) => api.delete(`/agendamentos/${id}`),
+  listar: () => api.get("/api/agendamentos"),
+  obter: (id) => api.get(`/api/agendamentos/${id}`),
+  criar: (dados) => api.post("/api/agendamentos", dados),
+  atualizar: (id, dados) => api.put(`/api/agendamentos/${id}`, dados),
+  deletar: (id) => api.delete(`/api/agendamentos/${id}`),
 };
 
 export default api;

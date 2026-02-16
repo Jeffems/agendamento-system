@@ -50,13 +50,7 @@ router.get(
 );
 
 
-// ====== MANUAL ======
-router.post("/register", register);
-router.post("/login", login);
 
-// ====== TERMOS / PERFIL ======
-router.get("/me", authMiddleware, me);
-router.post("/accept-terms", authMiddleware, acceptTerms);
 
 
 export default router;
