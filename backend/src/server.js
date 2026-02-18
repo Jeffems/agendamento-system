@@ -41,6 +41,7 @@ import agendamentoRoutes from "./routes/agendamentoRoutes.js";
 import authRoutes from "./auth/authRoutes.js";
 import { iniciarCronLembretes } from "./services/lembreteService.js";
 import { executarLembretesAgora } from "./services/lembreteService.js";
+import whatsappRoutes from "./routes/whatsappRoutes.js";
 
 dotenv.config();
 
@@ -49,6 +50,7 @@ const PORT = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(express.json());
+app.use("/whatsapp", whatsappRoutes);
 
 // 🔐 Passport
 app.use(passport.initialize());

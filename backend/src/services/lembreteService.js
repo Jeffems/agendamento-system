@@ -308,6 +308,7 @@ import { PrismaClient } from "@prisma/client";
 import { Resend } from "resend";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { ptBR } from "date-fns/locale";
+import axios from "axios";
 
 const prisma = new PrismaClient();
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -473,4 +474,40 @@ export function iniciarCronLembretes() {
 
 export async function executarLembretesAgora() {
   return enviarLembretes();
+}
+
+export async function sendReminderInteractive(to, agendamento) {
+  const url = `https://graph.facebook.com/v20.0/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`;
+
+  // IDs carregam o agendamento para você saber qual foi confirmado/remarcado
+  const confirmId = `confirm:${agendamento.id}`;
+  const rescheduleId = `reschedule:${agendamento.id}`;
+  const otherId = `other:${agendamento.id}`;
+
+  await axios.post(
+    url,
+    {
+      messaging_product: "whatsapp",
+      to,
+      type: "interactive",
+      interactive: {
+        type: "button",
+        body: {
+          text:
+            `📅 Lembrete de agendamento\n` +
+            `Cliente: ${agendamento.nome}\n` +
+            `Data/Hora: ${agendamento.dataHora}\n\n` +
+            `Selecione uma opção:`,
+        },
+        action: {
+          buttons: [
+            { type: "reply", reply: { id: confirmId, title: "✅ Confirmar" } },
+            { type: "reply", reply: { id: rescheduleId, title: "🔁 Remarcar" } },
+            { type: "reply", reply: { id: otherId, title: "❓ Outros" } },
+          ],
+        },
+      },
+    },
+    { headers: { Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}` } }
+  );
 }
