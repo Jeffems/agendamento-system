@@ -68,17 +68,21 @@ router.post("/webhook", async (req, res) => {
   }
 });
 
-async function sendText(to, text) {
-  const url = `https://graph.facebook.com/v20.0/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`;
+async function enviarTexto(to, text) {
   await axios.post(
-    url,
+    `https://graph.facebook.com/v20.0/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`,
     {
       messaging_product: "whatsapp",
       to,
       type: "text",
       text: { body: text },
     },
-    { headers: { Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}` } }
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+    }
   );
 }
 
