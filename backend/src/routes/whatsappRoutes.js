@@ -2,7 +2,7 @@ import express from "express";
 import axios from "axios";
 
 const router = express.Router();
-
+console.log("✅ whatsappRoutes carregado");
 // 1) Verificação do webhook (Meta)
 router.get("/webhook", (req, res) => {
   const mode = req.query["hub.mode"];
