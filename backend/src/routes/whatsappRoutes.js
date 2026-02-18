@@ -17,6 +17,8 @@ router.get("/webhook", (req, res) => {
 
 // 2) Recebimento de eventos (mensagens / cliques)
 router.post("/webhook", async (req, res) => {
+  console.log("📩 WhatsApp payload:", JSON.stringify(req.body, null, 2));
+
   try {
     const entry = req.body?.entry?.[0];
     const change = entry?.changes?.[0];
