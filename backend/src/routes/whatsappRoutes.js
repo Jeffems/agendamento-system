@@ -82,4 +82,20 @@ async function sendText(to, text) {
   );
 }
 
+router.post("/test-send", async (req, res) => {
+  try {
+    const { to } = req.body; // ex: "5566997141110"
+    if (!to) return res.status(400).json({ error: "Informe { to }" });
+
+    // mensagem simples
+    await enviarTexto(to, "📅 Teste: seu lembrete do agendamento chegou!");
+
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error(err?.response?.data || err.message);
+    return res.status(500).json({ error: "Falha ao enviar" });
+  }
+});
+
+
 export default router;
