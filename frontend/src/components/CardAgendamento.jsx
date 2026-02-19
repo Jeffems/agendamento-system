@@ -1,4 +1,4 @@
-import React from "react";
+{/*import React from "react";
 import {
   Calendar,
   Clock,
@@ -237,6 +237,257 @@ export default function CardAgendamento({
             </div>
           )}
         </div>
+      </div>
+    </motion.div>
+  );
+}
+*/}
+
+import React from "react";
+import {
+  Calendar,
+  Clock,
+  Mail,
+  Briefcase,
+  MoreVertical,
+  MessageCircle,
+  ChevronDown
+} from "lucide-react";
+import { formatInTimeZone } from "date-fns-tz";
+import { ptBR } from "date-fns/locale";
+import { motion } from "framer-motion";
+import { parseISO, isToday } from "date-fns";
+import { buildWhatsAppReminderLink, openWhatsApp } from "../utils/whatsapp";
+import { StatusBadge } from "./StatusBadge";
+
+export default function CardAgendamento({
+  agendamento,
+  onEditar,
+  onExcluir,
+  onMudarStatus,
+  onEnviarLembrete
+}) {
+  const [menuAberto, setMenuAberto] = React.useState(false);
+  const [detalhes, setDetalhes] = React.useState(false);
+
+  const TIMEZONE = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+  const formatarData = (dataString) => {
+    try {
+      if (!dataString) return { dia: "Data inválida", hora: "", diaSemana: "" };
+
+      const dateObj = new Date(dataString);
+      if (Number.isNaN(dateObj.getTime())) return { dia: "Data inválida", hora: "", diaSemana: "" };
+
+      return {
+        dia: formatInTimeZone(dateObj, TIMEZONE, "dd 'de' MMMM", { locale: ptBR }),
+        hora: formatInTimeZone(dateObj, TIMEZONE, "HH:mm", { locale: ptBR }),
+        diaSemana: formatInTimeZone(dateObj, TIMEZONE, "EEEE", { locale: ptBR })
+      };
+    } catch {
+      return { dia: "Data inválida", hora: "", diaSemana: "" };
+    }
+  };
+
+  const { dia, hora, diaSemana } = formatarData(agendamento.data_agendamento);
+
+  const ehHoje = (() => {
+    try {
+      return isToday(parseISO(agendamento.data_agendamento));
+    } catch {
+      return false;
+    }
+  })();
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      whileHover={{ scale: 1.01 }}
+      transition={{ duration: 0.2 }}
+      className={[
+        "bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 border overflow-hidden",
+        ehHoje ? "border-slate-900" : "border-slate-200"
+      ].join(" ")}
+    >
+      {/* Cabeçalho compacto */}
+      <div
+        className={[
+          "px-5 py-4 border-b",
+          ehHoje ? "bg-slate-900 border-slate-900 text-white" : "bg-slate-50 border-slate-200"
+        ].join(" ")}
+      >
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <div className="flex items-center gap-3">
+              <h3 className={["text-base font-extrabold", ehHoje ? "text-white" : "text-slate-900"].join(" ")}>
+                {agendamento.nome} {agendamento.sobrenome}
+              </h3>
+
+              <StatusBadge status={agendamento.status} compact />
+
+              {ehHoje && (
+                <span className="inline-flex items-center rounded-full bg-white/15 px-2 py-0.5 text-[11px] font-semibold">
+                  Hoje
+                </span>
+              )}
+            </div>
+
+            {/* Linha principal (escaneável) */}
+            <div
+              className={[
+                "mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm",
+                ehHoje ? "text-white/85" : "text-slate-600"
+              ].join(" ")}
+            >
+              <span className="inline-flex items-center gap-1.5">
+                <Calendar className={ehHoje ? "w-4 h-4 text-white/80" : "w-4 h-4 text-slate-500"} />
+                <span className="capitalize">{diaSemana}</span>, {dia}
+              </span>
+
+              <span className="inline-flex items-center gap-1.5">
+                <Clock className={ehHoje ? "w-4 h-4 text-white/80" : "w-4 h-4 text-slate-500"} />
+                {hora}
+              </span>
+
+              <span className="inline-flex items-center gap-1.5">
+                <Briefcase className={ehHoje ? "w-4 h-4 text-white/80" : "w-4 h-4 text-slate-500"} />
+                <span className="font-semibold">{agendamento.servico}</span>
+              </span>
+            </div>
+          </div>
+
+          {/* Menu */}
+          <div className="relative">
+            <button
+              onClick={() => setMenuAberto(!menuAberto)}
+              className={["p-2 rounded-lg transition-colors", ehHoje ? "hover:bg-white/10" : "hover:bg-slate-100"].join(" ")}
+              type="button"
+            >
+              <MoreVertical className={ehHoje ? "w-4 h-4 text-white" : "w-4 h-4"} />
+            </button>
+
+            {menuAberto && (
+              <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-10">
+                <button
+                  onClick={() => {
+                    onEditar(agendamento);
+                    setMenuAberto(false);
+                  }}
+                  className="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm"
+                  type="button"
+                >
+                  Editar
+                </button>
+
+                <button
+                  onClick={() => {
+                    onMudarStatus(agendamento, "confirmado");
+                    setMenuAberto(false);
+                  }}
+                  className="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm"
+                  type="button"
+                >
+                  Marcar como Confirmado
+                </button>
+
+                <button
+                  onClick={() => {
+                    onMudarStatus(agendamento, "concluido");
+                    setMenuAberto(false);
+                  }}
+                  className="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm"
+                  type="button"
+                >
+                  Marcar como Concluído
+                </button>
+
+                <button
+                  onClick={() => {
+                    onEnviarLembrete(agendamento);
+                    setMenuAberto(false);
+                  }}
+                  className="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm"
+                  type="button"
+                >
+                  Enviar Lembrete por Email
+                </button>
+
+                <button
+                  onClick={() => {
+                    const url = buildWhatsAppReminderLink({ agendamento, timezone: TIMEZONE });
+                    openWhatsApp(url);
+                    setMenuAberto(false);
+                  }}
+                  className="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm flex items-center gap-2"
+                  type="button"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  Lembrar via WhatsApp
+                </button>
+
+                <button
+                  onClick={() => {
+                    onExcluir(agendamento);
+                    setMenuAberto(false);
+                  }}
+                  className="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm text-red-600"
+                  type="button"
+                >
+                  Excluir
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Corpo: só o essencial + detalhes sob demanda */}
+      <div className="px-5 py-4">
+        <div className="flex items-center justify-between gap-3">
+          <button
+            type="button"
+            onClick={() => setDetalhes((v) => !v)}
+            className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 hover:text-slate-900"
+          >
+            {detalhes ? "Ocultar detalhes" : "Ver detalhes"}
+            <ChevronDown className={["w-4 h-4 transition-transform", detalhes ? "rotate-180" : ""].join(" ")} />
+          </button>
+
+          {agendamento.lembrete_enviado && (
+            <div className="inline-flex items-center gap-2 text-[11px] text-slate-700 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200">
+              <MessageCircle className="w-4 h-4" />
+              <span className="font-semibold">Lembrete enviado</span>
+            </div>
+          )}
+        </div>
+
+        {detalhes && (
+          <div className="mt-4 space-y-3">
+            <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
+              <div className="h-9 w-9 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0">
+                <Mail className="w-4.5 h-4.5 text-slate-700" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[11px] text-slate-500 font-semibold">Email</p>
+                <a
+                  href={`mailto:${agendamento.email}`}
+                  className="text-sm font-semibold text-slate-900 hover:text-slate-700 hover:underline break-all"
+                >
+                  {agendamento.email}
+                </a>
+              </div>
+            </div>
+
+            {agendamento.observacoes && (
+              <div className="p-3 bg-white rounded-lg border border-slate-200">
+                <p className="text-[11px] text-slate-500 font-semibold mb-1">Observações</p>
+                <p className="text-sm text-slate-700 whitespace-pre-wrap">{agendamento.observacoes}</p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </motion.div>
   );
