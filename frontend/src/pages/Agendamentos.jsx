@@ -347,10 +347,13 @@ export default function Agendamentos() {
   // NOVO: alternar visualização
   const [visualizacao, setVisualizacao] = useState("cards"); // cards | lista | calendario
 
-  cconst [detalheAbertoId, setDetalheAbertoId] = useState(null);
+  const [detalhesAbertos, setDetalhesAbertos] = useState({}); // { [id]: true/false }
 
   const toggleDetalhes = (id) => {
-    setDetalheAbertoId((prev) => (prev === id ? null : id));
+    setDetalhesAbertos((prev) => {
+      const jaAberto = !!prev[id];
+      return jaAberto ? {} : { [id]: true };
+    });
   };
 
   useEffect(() => {
@@ -361,10 +364,7 @@ export default function Agendamentos() {
     try {
       setLoading(true);
       const response = await agendamentosAPI.listar();
-
-      console.log("TOTAL:", response.data.length); // 👈 AQUI
-      console.log("DATA:", response.data);         // 👈 opcional (melhor ainda)
-  
+      
       setAgendamentos(response.data);
     } catch (error) {
       toast.error("Erro ao carregar agendamentos");
@@ -582,7 +582,7 @@ export default function Agendamentos() {
         <AnimatePresence>
        {agendamentosUnicos.map((agendamento) => {
   const keyAg = agendamento.id;
-  console.log("detalheAbertoId:", detalheAbertoId);
+
   return (
     <CardAgendamento
       key={keyAg}
@@ -591,8 +591,8 @@ export default function Agendamentos() {
       onExcluir={handleExcluir}
       onMudarStatus={handleMudarStatus}
       onEnviarLembrete={handleEnviarLembrete}
-      detalhesAberto={detalheAbertoId === agendamento.id}
-onToggleDetalhes={() => toggleDetalhes(agendamento.id)}
+      detalhesAberto={!!detalhesAbertos[keyAg]}
+      onToggleDetalhes={() => toggleDetalhes(keyAg)}
     />
   );
 })}
