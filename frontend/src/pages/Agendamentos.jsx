@@ -364,6 +364,10 @@ export default function Agendamentos() {
     try {
       setLoading(true);
       const response = await agendamentosAPI.listar();
+
+      console.log("TOTAL:", response.data.length); // 👈 AQUI
+      console.log("DATA:", response.data);         // 👈 opcional (melhor ainda)
+  
       setAgendamentos(response.data);
     } catch (error) {
       toast.error("Erro ao carregar agendamentos");
