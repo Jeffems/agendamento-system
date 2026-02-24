@@ -338,7 +338,10 @@ export default function Agendamentos() {
   const [detalhesAbertos, setDetalhesAbertos] = useState({}); // { [id]: true/false }
 
   const toggleDetalhes = (id) => {
-    setDetalhesAbertos((prev) => ({ ...prev, [id]: !prev[id] }));
+    setDetalhesAbertos((prev) => {
+      const jaAberto = !!prev[id];
+      return jaAberto ? {} : { [id]: true };
+    });
   };
 
   useEffect(() => {
@@ -530,79 +533,32 @@ export default function Agendamentos() {
       );
     }
 
-    {mostrarDetalhes && agendamentoSelecionado && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-        <div className="w-full max-w-lg bg-white rounded-xl shadow-xl border border-slate-200">
-          <div className="p-5 border-b border-slate-200 flex items-center justify-between">
-            <div>
-              <div className="text-lg font-extrabold text-slate-900">
-                {agendamentoSelecionado.nome} {agendamentoSelecionado.sobrenome}
-              </div>
-              <div className="text-sm text-slate-600 font-semibold">
-                {agendamentoSelecionado.servico}
-              </div>
-            </div>
     
-            <button
-              className="px-3 py-2 rounded-lg hover:bg-slate-100 text-sm font-semibold"
-              onClick={() => setMostrarDetalhes(false)}
-            >
-              Fechar
-            </button>
-          </div>
-    
-          <div className="p-5 space-y-3">
-            <div className="text-sm text-slate-700">
-              <span className="font-semibold">Email:</span>{" "}
-              <span className="break-all">{agendamentoSelecionado.email}</span>
-            </div>
-    
-            {agendamentoSelecionado.observacoes && (
-              <div className="text-sm text-slate-700">
-                <span className="font-semibold">Observações:</span>
-                <div className="mt-1 whitespace-pre-wrap">{agendamentoSelecionado.observacoes}</div>
-              </div>
-            )}
-          </div>
-    
-          <div className="p-5 border-t border-slate-200 flex items-center justify-end gap-2">
-            <button
-              className="px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-sm font-semibold"
-              onClick={() => setMostrarDetalhes(false)}
-            >
-              Ok
-            </button>
-    
-            <button
-              className="px-4 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-800 text-sm font-semibold"
-              onClick={() => {
-                setMostrarDetalhes(false);
-                handleEditar(agendamentoSelecionado);
-              }}
-            >
-              Editar
-            </button>
-          </div>
-        </div>
-      </div>
-    )}
 
     // cards
     return (
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         <AnimatePresence>
-          {agendamentosFiltrados.map((agendamento) => (
-            <CardAgendamento
-            key={agendamento.id}
-            agendamento={agendamento}
-            onEditar={handleEditar}
-            onExcluir={handleExcluir}
-            onMudarStatus={handleMudarStatus}
-            onEnviarLembrete={handleEnviarLembrete}
-            detalhesAberto={!!detalhesAbertos[agendamento.id]}
-            onToggleDetalhes={() => toggleDetalhes(agendamento.id)}
-          />
-          ))}
+        {agendamentosFiltrados.map((agendamento) => {
+  const keyAg =
+    agendamento.id ??
+    agendamento._id ??
+    agendamento.agendamento_id ??
+    `${agendamento.email}-${agendamento.data_agendamento}`;
+
+  return (
+    <CardAgendamento
+      key={keyAg}
+      agendamento={agendamento}
+      onEditar={handleEditar}
+      onExcluir={handleExcluir}
+      onMudarStatus={handleMudarStatus}
+      onEnviarLembrete={handleEnviarLembrete}
+      detalhesAberto={!!detalhesAbertos[keyAg]}
+      onToggleDetalhes={() => toggleDetalhes(keyAg)}
+    />
+  );
+})}
         </AnimatePresence>
       </div>
     );
@@ -760,6 +716,64 @@ export default function Agendamentos() {
         </div>
 
         {/* Conteúdo */}
+
+        {mostrarDetalhes && agendamentoSelecionado && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+        <div className="w-full max-w-lg bg-white rounded-xl shadow-xl border border-slate-200">
+          <div className="p-5 border-b border-slate-200 flex items-center justify-between">
+            <div>
+              <div className="text-lg font-extrabold text-slate-900">
+                {agendamentoSelecionado.nome} {agendamentoSelecionado.sobrenome}
+              </div>
+              <div className="text-sm text-slate-600 font-semibold">
+                {agendamentoSelecionado.servico}
+              </div>
+            </div>
+    
+            <button
+              className="px-3 py-2 rounded-lg hover:bg-slate-100 text-sm font-semibold"
+              onClick={() => setMostrarDetalhes(false)}
+            >
+              Fechar
+            </button>
+          </div>
+    
+          <div className="p-5 space-y-3">
+            <div className="text-sm text-slate-700">
+              <span className="font-semibold">Email:</span>{" "}
+              <span className="break-all">{agendamentoSelecionado.email}</span>
+            </div>
+    
+            {agendamentoSelecionado.observacoes && (
+              <div className="text-sm text-slate-700">
+                <span className="font-semibold">Observações:</span>
+                <div className="mt-1 whitespace-pre-wrap">{agendamentoSelecionado.observacoes}</div>
+              </div>
+            )}
+          </div>
+    
+          <div className="p-5 border-t border-slate-200 flex items-center justify-end gap-2">
+            <button
+              className="px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-sm font-semibold"
+              onClick={() => setMostrarDetalhes(false)}
+            >
+              Ok
+            </button>
+    
+            <button
+              className="px-4 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-800 text-sm font-semibold"
+              onClick={() => {
+                setMostrarDetalhes(false);
+                handleEditar(agendamentoSelecionado);
+              }}
+            >
+              Editar
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
         <div>
           {/* Para loading/empty, mantemos a centralização; para lista/calendário, renderiza direto */}
           {visualizacao === "cards" ? (
