@@ -513,6 +513,16 @@ export default function Agendamentos() {
     return { hoje, pendentes, concluidos, total: agendamentos.length };
   }, [agendamentos, agendamentosFiltrados]);
 
+  const agendamentosUnicos = useMemo(() => {
+    const map = new Map();
+  
+    for (const ag of agendamentosFiltrados) {
+      map.set(ag.id, ag);
+    }
+  
+    return Array.from(map.values());
+  }, [agendamentosFiltrados]);
+
   const renderConteudo = () => {
     if (loading) {
       return (
@@ -563,20 +573,13 @@ export default function Agendamentos() {
         />
       );
     }
-    const agendamentosUnicos = useMemo(() => {
-      const map = new Map();
-    
-      for (const ag of agendamentosFiltrados) {
-        map.set(ag.id, ag);
-      }
-    
-      return Array.from(map.values());
-    }, [agendamentosFiltrados]);
+  
     // cards
     return (
+      
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         <AnimatePresence>
-        {agendamentosUnicos.map((agendamento) => {
+       {agendamentosUnicos.map((agendamento) => {
   const keyAg = agendamento.id;
 
   return (
