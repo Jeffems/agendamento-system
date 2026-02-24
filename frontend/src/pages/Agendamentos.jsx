@@ -1,4 +1,5 @@
-{/*import React, { useState, useMemo, useEffect } from "react";
+{
+  /*import React, { useState, useMemo, useEffect } from "react";
 import { toast } from "sonner";
 import { parseISO, isToday, isTomorrow, isThisWeek, isThisMonth } from "date-fns";
 import { Plus, CalendarDays, TrendingUp, Clock, CheckCircle2 } from "lucide-react";
@@ -292,11 +293,18 @@ export default function Agendamentos() {
     </div>
   );
 }
-*/}
+*/
+}
 
 import React, { useState, useMemo, useEffect } from "react";
 import { toast } from "sonner";
-import { parseISO, isToday, isTomorrow, isThisWeek, isThisMonth } from "date-fns";
+import {
+  parseISO,
+  isToday,
+  isTomorrow,
+  isThisWeek,
+  isThisMonth,
+} from "date-fns";
 import {
   Plus,
   CalendarDays,
@@ -305,7 +313,7 @@ import {
   CheckCircle2,
   LayoutGrid,
   List,
-  Calendar
+  Calendar,
 } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import { agendamentosAPI } from "../services/api";
@@ -327,7 +335,11 @@ export default function Agendamentos() {
   const [loading, setLoading] = useState(true);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [agendamentoEditando, setAgendamentoEditando] = useState(null);
-  const [filtros, setFiltros] = useState({ busca: "", status: "todos", periodo: "todos" });
+  const [filtros, setFiltros] = useState({
+    busca: "",
+    status: "todos",
+    periodo: "todos",
+  });
   const [processando, setProcessando] = useState(false);
 
   const [agendamentoSelecionado, setAgendamentoSelecionado] = useState(null);
@@ -386,7 +398,11 @@ export default function Agendamentos() {
   };
 
   const handleExcluir = async (agendamento) => {
-    if (confirm(`Deseja realmente excluir o agendamento de ${agendamento.nome} ${agendamento.sobrenome}?`)) {
+    if (
+      confirm(
+        `Deseja realmente excluir o agendamento de ${agendamento.nome} ${agendamento.sobrenome}?`
+      )
+    ) {
       try {
         await agendamentosAPI.deletar(agendamento.id);
         toast.success("Agendamento excluído com sucesso!");
@@ -399,7 +415,10 @@ export default function Agendamentos() {
 
   const handleMudarStatus = async (agendamento, novoStatus) => {
     try {
-      await agendamentosAPI.atualizar(agendamento.id, { ...agendamento, status: novoStatus });
+      await agendamentosAPI.atualizar(agendamento.id, {
+        ...agendamento,
+        status: novoStatus,
+      });
       toast.success("Status atualizado!");
       await carregarAgendamentos();
     } catch (error) {
@@ -412,7 +431,10 @@ export default function Agendamentos() {
       const mensagem = `Olá ${agendamento.nome}, seu agendamento é amanhã. Serviço: ${agendamento.servico}`;
       console.log("Enviando lembrete:", mensagem);
 
-      await agendamentosAPI.atualizar(agendamento.id, { ...agendamento, lembrete_enviado: true });
+      await agendamentosAPI.atualizar(agendamento.id, {
+        ...agendamento,
+        lembrete_enviado: true,
+      });
       toast.success("Lembrete enviado com sucesso!");
       await carregarAgendamentos();
     } catch (error) {
@@ -435,10 +457,13 @@ export default function Agendamentos() {
       const buscaMatch =
         !filtros.busca ||
         agendamento.nome.toLowerCase().includes(filtros.busca.toLowerCase()) ||
-        agendamento.sobrenome.toLowerCase().includes(filtros.busca.toLowerCase()) ||
+        agendamento.sobrenome
+          .toLowerCase()
+          .includes(filtros.busca.toLowerCase()) ||
         agendamento.servico.toLowerCase().includes(filtros.busca.toLowerCase());
 
-      const statusMatch = filtros.status === "todos" || agendamento.status === filtros.status;
+      const statusMatch =
+        filtros.status === "todos" || agendamento.status === filtros.status;
 
       let periodoMatch = true;
       if (filtros.periodo !== "todos") {
@@ -478,8 +503,12 @@ export default function Agendamentos() {
       }
     }).length;
 
-    const pendentes = agendamentos.filter((a) => a.status === "pendente").length;
-    const concluidos = agendamentos.filter((a) => a.status === "concluido").length;
+    const pendentes = agendamentos.filter(
+      (a) => a.status === "pendente"
+    ).length;
+    const concluidos = agendamentos.filter(
+      (a) => a.status === "concluido"
+    ).length;
 
     return { hoje, pendentes, concluidos, total: agendamentos.length };
   }, [agendamentos, agendamentosFiltrados]);
@@ -499,7 +528,9 @@ export default function Agendamentos() {
         <div className="col-span-full text-center py-12">
           <CalendarDays className="w-16 h-16 text-slate-300 mx-auto mb-4" />
           <p className="text-slate-600 text-lg">
-            {filtros.busca || filtros.status !== "todos" || filtros.periodo !== "todos"
+            {filtros.busca ||
+            filtros.status !== "todos" ||
+            filtros.periodo !== "todos"
               ? "Nenhum agendamento encontrado com os filtros aplicados"
               : "Nenhum agendamento cadastrado ainda"}
           </p>
@@ -523,42 +554,40 @@ export default function Agendamentos() {
     if (visualizacao === "calendario") {
       return (
         <AgendamentosCalendarView
-  items={agendamentosFiltrados}
-  onSelect={(a) => {
-    setAgendamentoSelecionado(a);
-    setMostrarDetalhes(true);
-  }}
-  weekStartsOn={0}
-/>
+          items={agendamentosFiltrados}
+          onSelect={(a) => {
+            setAgendamentoSelecionado(a);
+            setMostrarDetalhes(true);
+          }}
+          weekStartsOn={0}
+        />
       );
     }
-
-    
 
     // cards
     return (
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         <AnimatePresence>
-        {agendamentosFiltrados.map((agendamento) => {
-  const keyAg =
-    agendamento.id ??
-    agendamento._id ??
-    agendamento.agendamento_id ??
-    `${agendamento.email}-${agendamento.data_agendamento}`;
-
-  return (
-    <CardAgendamento
-      key={keyAg}
-      agendamento={agendamento}
-      onEditar={handleEditar}
-      onExcluir={handleExcluir}
-      onMudarStatus={handleMudarStatus}
-      onEnviarLembrete={handleEnviarLembrete}
-      detalhesAberto={!!detalhesAbertos[keyAg]}
-      onToggleDetalhes={() => toggleDetalhes(keyAg)}
-    />
-  );
-})}
+          {agendamentosFiltrados.map((agendamento) => {
+            const keyAg =
+              agendamento.id ??
+              agendamento._id ??
+              agendamento.agendamento_id ??
+              `${agendamento.email}-${agendamento.data_agendamento}`;
+              console.log("ID:", agendamento.id, "KEY:", keyAg);
+            return (
+              <CardAgendamento
+                key={keyAg}
+                agendamento={agendamento}
+                onEditar={handleEditar}
+                onExcluir={handleExcluir}
+                onMudarStatus={handleMudarStatus}
+                onEnviarLembrete={handleEnviarLembrete}
+                detalhesAberto={!!detalhesAbertos[keyAg]}
+                onToggleDetalhes={() => toggleDetalhes(keyAg)}
+              />
+            );
+          })}
         </AnimatePresence>
       </div>
     );
@@ -571,8 +600,12 @@ export default function Agendamentos() {
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-4xl font-bold text-slate-900 mb-2">Sistema de Agendamentos</h1>
-              <p className="text-slate-600">Gerencie seus agendamentos de forma profissional</p>
+              <h1 className="text-4xl font-bold text-slate-900 mb-2">
+                Sistema de Agendamentos
+              </h1>
+              <p className="text-slate-600">
+                Gerencie seus agendamentos de forma profissional
+              </p>
             </div>
 
             {/* AÇÕES */}
@@ -604,7 +637,9 @@ export default function Agendamentos() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-slate-600 mb-1">Total</p>
-                <p className="text-3xl font-bold text-slate-900">{estatisticas.total}</p>
+                <p className="text-3xl font-bold text-slate-900">
+                  {estatisticas.total}
+                </p>
               </div>
               <div className="h-12 w-12 rounded-full bg-slate-200 flex items-center justify-center">
                 <CalendarDays className="w-6 h-6 text-slate-700" />
@@ -616,7 +651,9 @@ export default function Agendamentos() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-slate-600 mb-1">Hoje</p>
-                <p className="text-3xl font-bold text-slate-900">{estatisticas.hoje}</p>
+                <p className="text-3xl font-bold text-slate-900">
+                  {estatisticas.hoje}
+                </p>
               </div>
               <div className="h-12 w-12 rounded-full bg-slate-300 flex items-center justify-center">
                 <Clock className="w-6 h-6 text-slate-700" />
@@ -627,8 +664,12 @@ export default function Agendamentos() {
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-slate-600 mb-1">Pendentes</p>
-                <p className="text-3xl font-bold text-slate-900">{estatisticas.pendentes}</p>
+                <p className="text-sm font-medium text-slate-600 mb-1">
+                  Pendentes
+                </p>
+                <p className="text-3xl font-bold text-slate-900">
+                  {estatisticas.pendentes}
+                </p>
               </div>
               <div className="h-12 w-12 rounded-full bg-slate-400 flex items-center justify-center">
                 <TrendingUp className="w-6 h-6 text-white" />
@@ -639,8 +680,12 @@ export default function Agendamentos() {
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-slate-600 mb-1">Concluídos</p>
-                <p className="text-3xl font-bold text-slate-900">{estatisticas.concluidos}</p>
+                <p className="text-sm font-medium text-slate-600 mb-1">
+                  Concluídos
+                </p>
+                <p className="text-3xl font-bold text-slate-900">
+                  {estatisticas.concluidos}
+                </p>
               </div>
               <div className="h-12 w-12 rounded-full bg-slate-800 flex items-center justify-center">
                 <CheckCircle2 className="w-6 h-6 text-white" />
@@ -672,7 +717,11 @@ export default function Agendamentos() {
 
           <div className="flex items-center justify-between gap-3">
             <div className="text-sm text-slate-600">
-              Exibindo <span className="font-semibold">{agendamentosFiltrados.length}</span> resultado(s)
+              Exibindo{" "}
+              <span className="font-semibold">
+                {agendamentosFiltrados.length}
+              </span>{" "}
+              resultado(s)
             </div>
 
             <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
@@ -681,7 +730,9 @@ export default function Agendamentos() {
                 onClick={() => setVisualizacao("cards")}
                 className={[
                   "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-colors",
-                  visualizacao === "cards" ? "bg-slate-900 text-white" : "text-slate-700 hover:bg-slate-50"
+                  visualizacao === "cards"
+                    ? "bg-slate-900 text-white"
+                    : "text-slate-700 hover:bg-slate-50",
                 ].join(" ")}
               >
                 <LayoutGrid className="w-4 h-4" />
@@ -693,7 +744,9 @@ export default function Agendamentos() {
                 onClick={() => setVisualizacao("lista")}
                 className={[
                   "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-colors",
-                  visualizacao === "lista" ? "bg-slate-900 text-white" : "text-slate-700 hover:bg-slate-50"
+                  visualizacao === "lista"
+                    ? "bg-slate-900 text-white"
+                    : "text-slate-700 hover:bg-slate-50",
                 ].join(" ")}
               >
                 <List className="w-4 h-4" />
@@ -705,7 +758,9 @@ export default function Agendamentos() {
                 onClick={() => setVisualizacao("calendario")}
                 className={[
                   "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-colors",
-                  visualizacao === "calendario" ? "bg-slate-900 text-white" : "text-slate-700 hover:bg-slate-50"
+                  visualizacao === "calendario"
+                    ? "bg-slate-900 text-white"
+                    : "text-slate-700 hover:bg-slate-50",
                 ].join(" ")}
               >
                 <Calendar className="w-4 h-4" />
@@ -718,61 +773,66 @@ export default function Agendamentos() {
         {/* Conteúdo */}
 
         {mostrarDetalhes && agendamentoSelecionado && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-        <div className="w-full max-w-lg bg-white rounded-xl shadow-xl border border-slate-200">
-          <div className="p-5 border-b border-slate-200 flex items-center justify-between">
-            <div>
-              <div className="text-lg font-extrabold text-slate-900">
-                {agendamentoSelecionado.nome} {agendamentoSelecionado.sobrenome}
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+            <div className="w-full max-w-lg bg-white rounded-xl shadow-xl border border-slate-200">
+              <div className="p-5 border-b border-slate-200 flex items-center justify-between">
+                <div>
+                  <div className="text-lg font-extrabold text-slate-900">
+                    {agendamentoSelecionado.nome}{" "}
+                    {agendamentoSelecionado.sobrenome}
+                  </div>
+                  <div className="text-sm text-slate-600 font-semibold">
+                    {agendamentoSelecionado.servico}
+                  </div>
+                </div>
+
+                <button
+                  className="px-3 py-2 rounded-lg hover:bg-slate-100 text-sm font-semibold"
+                  onClick={() => setMostrarDetalhes(false)}
+                >
+                  Fechar
+                </button>
               </div>
-              <div className="text-sm text-slate-600 font-semibold">
-                {agendamentoSelecionado.servico}
+
+              <div className="p-5 space-y-3">
+                <div className="text-sm text-slate-700">
+                  <span className="font-semibold">Email:</span>{" "}
+                  <span className="break-all">
+                    {agendamentoSelecionado.email}
+                  </span>
+                </div>
+
+                {agendamentoSelecionado.observacoes && (
+                  <div className="text-sm text-slate-700">
+                    <span className="font-semibold">Observações:</span>
+                    <div className="mt-1 whitespace-pre-wrap">
+                      {agendamentoSelecionado.observacoes}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="p-5 border-t border-slate-200 flex items-center justify-end gap-2">
+                <button
+                  className="px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-sm font-semibold"
+                  onClick={() => setMostrarDetalhes(false)}
+                >
+                  Ok
+                </button>
+
+                <button
+                  className="px-4 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-800 text-sm font-semibold"
+                  onClick={() => {
+                    setMostrarDetalhes(false);
+                    handleEditar(agendamentoSelecionado);
+                  }}
+                >
+                  Editar
+                </button>
               </div>
             </div>
-    
-            <button
-              className="px-3 py-2 rounded-lg hover:bg-slate-100 text-sm font-semibold"
-              onClick={() => setMostrarDetalhes(false)}
-            >
-              Fechar
-            </button>
           </div>
-    
-          <div className="p-5 space-y-3">
-            <div className="text-sm text-slate-700">
-              <span className="font-semibold">Email:</span>{" "}
-              <span className="break-all">{agendamentoSelecionado.email}</span>
-            </div>
-    
-            {agendamentoSelecionado.observacoes && (
-              <div className="text-sm text-slate-700">
-                <span className="font-semibold">Observações:</span>
-                <div className="mt-1 whitespace-pre-wrap">{agendamentoSelecionado.observacoes}</div>
-              </div>
-            )}
-          </div>
-    
-          <div className="p-5 border-t border-slate-200 flex items-center justify-end gap-2">
-            <button
-              className="px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-sm font-semibold"
-              onClick={() => setMostrarDetalhes(false)}
-            >
-              Ok
-            </button>
-    
-            <button
-              className="px-4 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-800 text-sm font-semibold"
-              onClick={() => {
-                setMostrarDetalhes(false);
-                handleEditar(agendamentoSelecionado);
-              }}
-            >
-              Editar
-            </button>
-          </div>
-        </div>
-      </div>
-    )}
+        )}
 
         <div>
           {/* Para loading/empty, mantemos a centralização; para lista/calendário, renderiza direto */}
