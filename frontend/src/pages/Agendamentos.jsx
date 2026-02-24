@@ -1091,7 +1091,7 @@ export default function Agendamentos() {
 
     // cards
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 items-start">
         <AnimatePresence>
           {agendamentosFiltrados.map((agendamento) => {
             const id = agendamento.id; // aqui seu backend já manda UUID ok
