@@ -309,14 +309,14 @@ export default function CardAgendamento({
       whileHover={{ scale: 1.01 }}
       transition={{ duration: 0.2 }}
       className={[
-        "bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 border ",
+        "bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 border min-h-[190px] flex flex-col",
         ehHoje ? "border-slate-900" : "border-slate-200"
       ].join(" ")}
     >
       {/* Cabeçalho compacto */}
       <div
         className={[
-          "px-5 py-4 border-b",
+          "px-5 py-4 flex-1 border-b",
           ehHoje ? "bg-slate-900 border-slate-900 text-white" : "bg-slate-50 border-slate-200"
         ].join(" ")}
       >
