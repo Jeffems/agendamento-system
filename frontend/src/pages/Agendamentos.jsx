@@ -563,31 +563,35 @@ export default function Agendamentos() {
         />
       );
     }
-
+    const agendamentosUnicos = useMemo(() => {
+      const map = new Map();
+    
+      for (const ag of agendamentosFiltrados) {
+        map.set(ag.id, ag);
+      }
+    
+      return Array.from(map.values());
+    }, [agendamentosFiltrados]);
     // cards
     return (
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         <AnimatePresence>
-          {agendamentosFiltrados.map((agendamento) => {
-            const keyAg =
-              agendamento.id ??
-              agendamento._id ??
-              agendamento.agendamento_id ??
-              `${agendamento.email}-${agendamento.data_agendamento}`;
-              console.log("ID:", agendamento.id, "KEY:", keyAg);
-            return (
-              <CardAgendamento
-                key={keyAg}
-                agendamento={agendamento}
-                onEditar={handleEditar}
-                onExcluir={handleExcluir}
-                onMudarStatus={handleMudarStatus}
-                onEnviarLembrete={handleEnviarLembrete}
-                detalhesAberto={!!detalhesAbertos[keyAg]}
-                onToggleDetalhes={() => toggleDetalhes(keyAg)}
-              />
-            );
-          })}
+        {agendamentosUnicos.map((agendamento) => {
+  const keyAg = agendamento.id;
+
+  return (
+    <CardAgendamento
+      key={keyAg}
+      agendamento={agendamento}
+      onEditar={handleEditar}
+      onExcluir={handleExcluir}
+      onMudarStatus={handleMudarStatus}
+      onEnviarLembrete={handleEnviarLembrete}
+      detalhesAberto={!!detalhesAbertos[keyAg]}
+      onToggleDetalhes={() => toggleDetalhes(keyAg)}
+    />
+  );
+})}
         </AnimatePresence>
       </div>
     );
