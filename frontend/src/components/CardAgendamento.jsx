@@ -265,10 +265,12 @@ export default function CardAgendamento({
   onEditar,
   onExcluir,
   onMudarStatus,
-  onEnviarLembrete
+  onEnviarLembrete,
+  detalhesAberto = false,
+  onToggleDetalhes
 }) {
   const [menuAberto, setMenuAberto] = React.useState(false);
-  const [detalhes, setDetalhes] = React.useState(false);
+  //const [detalhes, setDetalhes] = React.useState(false);
 
   const TIMEZONE = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
@@ -448,11 +450,11 @@ export default function CardAgendamento({
         <div className="flex items-center justify-between gap-3">
           <button
             type="button"
-            onClick={() => setDetalhes((v) => !v)}
+            onClick={onToggleDetalhes}
             className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 hover:text-slate-900"
           >
-            {detalhes ? "Ocultar detalhes" : "Ver detalhes"}
-            <ChevronDown className={["w-4 h-4 transition-transform", detalhes ? "rotate-180" : ""].join(" ")} />
+            {detalhesAberto ? "Ocultar detalhes" : "Ver detalhes"}
+            <ChevronDown className={["w-4 h-4 transition-transform", detalhesAberto ? "rotate-180" : ""].join(" ")} />
           </button>
 
           {agendamento.lembrete_enviado && (
@@ -463,7 +465,7 @@ export default function CardAgendamento({
           )}
         </div>
 
-        {detalhes && (
+        {detalhesAberto && (
           <div className="mt-4 space-y-3">
             <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
               <div className="h-9 w-9 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0">
