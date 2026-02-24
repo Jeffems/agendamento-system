@@ -347,13 +347,10 @@ export default function Agendamentos() {
   // NOVO: alternar visualização
   const [visualizacao, setVisualizacao] = useState("cards"); // cards | lista | calendario
 
-  const [detalhesAbertos, setDetalhesAbertos] = useState({}); // { [id]: true/false }
+  cconst [detalheAbertoId, setDetalheAbertoId] = useState(null);
 
   const toggleDetalhes = (id) => {
-    setDetalhesAbertos((prev) => {
-      const jaAberto = !!prev[id];
-      return jaAberto ? {} : { [id]: true };
-    });
+    setDetalheAbertoId((prev) => (prev === id ? null : id));
   };
 
   useEffect(() => {
@@ -585,7 +582,7 @@ export default function Agendamentos() {
         <AnimatePresence>
        {agendamentosUnicos.map((agendamento) => {
   const keyAg = agendamento.id;
-
+  console.log("detalheAbertoId:", detalheAbertoId);
   return (
     <CardAgendamento
       key={keyAg}
@@ -594,8 +591,8 @@ export default function Agendamentos() {
       onExcluir={handleExcluir}
       onMudarStatus={handleMudarStatus}
       onEnviarLembrete={handleEnviarLembrete}
-      detalhesAberto={!!detalhesAbertos[keyAg]}
-      onToggleDetalhes={() => toggleDetalhes(keyAg)}
+      detalhesAberto={detalheAbertoId === agendamento.id}
+onToggleDetalhes={() => toggleDetalhes(agendamento.id)}
     />
   );
 })}
