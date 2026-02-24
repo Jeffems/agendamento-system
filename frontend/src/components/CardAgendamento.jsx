@@ -309,7 +309,7 @@ export default function CardAgendamento({
       whileHover={{ scale: 1.01 }}
       transition={{ duration: 0.2 }}
       className={[
-        "bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 border overflow-hidden",
+        "bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 border ",
         ehHoje ? "border-slate-900" : "border-slate-200"
       ].join(" ")}
     >
