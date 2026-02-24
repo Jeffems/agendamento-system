@@ -1,4 +1,5 @@
-{/*import React from "react";
+{
+  /*import React from "react";
 import {
   Calendar,
   Clock,
@@ -241,7 +242,8 @@ export default function CardAgendamento({
     </motion.div>
   );
 }
-*/}
+*/
+}
 
 import React from "react";
 import {
@@ -251,7 +253,7 @@ import {
   Briefcase,
   MoreVertical,
   MessageCircle,
-  ChevronDown
+  ChevronDown,
 } from "lucide-react";
 import { formatInTimeZone } from "date-fns-tz";
 import { ptBR } from "date-fns/locale";
@@ -259,6 +261,7 @@ import { motion } from "framer-motion";
 import { parseISO, isToday } from "date-fns";
 import { buildWhatsAppReminderLink, openWhatsApp } from "../utils/whatsapp";
 import { StatusBadge } from "./StatusBadge";
+import { Phone } from "lucide-react";
 
 export default function CardAgendamento({
   agendamento,
@@ -267,24 +270,34 @@ export default function CardAgendamento({
   onMudarStatus,
   onEnviarLembrete,
   detalhesAberto = false,
-  onToggleDetalhes
+  onToggleDetalhes,
 }) {
   const [menuAberto, setMenuAberto] = React.useState(false);
   //const [detalhes, setDetalhes] = React.useState(false);
 
   const TIMEZONE = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
+  const telefone =
+  agendamento.telefone ||
+  agendamento.contato ||
+  agendamento.whatsapp ||
+  agendamento.celular ||
+  "";
   const formatarData = (dataString) => {
     try {
       if (!dataString) return { dia: "Data inválida", hora: "", diaSemana: "" };
 
       const dateObj = new Date(dataString);
-      if (Number.isNaN(dateObj.getTime())) return { dia: "Data inválida", hora: "", diaSemana: "" };
+      if (Number.isNaN(dateObj.getTime()))
+        return { dia: "Data inválida", hora: "", diaSemana: "" };
 
       return {
-        dia: formatInTimeZone(dateObj, TIMEZONE, "dd 'de' MMMM", { locale: ptBR }),
+        dia: formatInTimeZone(dateObj, TIMEZONE, "dd 'de' MMMM", {
+          locale: ptBR,
+        }),
         hora: formatInTimeZone(dateObj, TIMEZONE, "HH:mm", { locale: ptBR }),
-        diaSemana: formatInTimeZone(dateObj, TIMEZONE, "EEEE", { locale: ptBR })
+        diaSemana: formatInTimeZone(dateObj, TIMEZONE, "EEEE", {
+          locale: ptBR,
+        }),
       };
     } catch {
       return { dia: "Data inválida", hora: "", diaSemana: "" };
@@ -310,20 +323,27 @@ export default function CardAgendamento({
       transition={{ duration: 0.2 }}
       className={[
         "bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 border min-h-[190px] flex flex-col",
-        ehHoje ? "border-slate-900" : "border-slate-200"
+        ehHoje ? "border-slate-900" : "border-slate-200",
       ].join(" ")}
     >
       {/* Cabeçalho compacto */}
       <div
         className={[
           "px-5 py-4 flex-1 border-b",
-          ehHoje ? "bg-slate-900 border-slate-900 text-white" : "bg-slate-50 border-slate-200"
+          ehHoje
+            ? "bg-slate-900 border-slate-900 text-white"
+            : "bg-slate-50 border-slate-200",
         ].join(" ")}
       >
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-3">
-              <h3 className={["text-base font-extrabold", ehHoje ? "text-white" : "text-slate-900"].join(" ")}>
+              <h3
+                className={[
+                  "text-base font-extrabold",
+                  ehHoje ? "text-white" : "text-slate-900",
+                ].join(" ")}
+              >
                 {agendamento.nome} {agendamento.sobrenome}
               </h3>
 
@@ -340,21 +360,33 @@ export default function CardAgendamento({
             <div
               className={[
                 "mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm",
-                ehHoje ? "text-white/85" : "text-slate-600"
+                ehHoje ? "text-white/85" : "text-slate-600",
               ].join(" ")}
             >
               <span className="inline-flex items-center gap-1.5">
-                <Calendar className={ehHoje ? "w-4 h-4 text-white/80" : "w-4 h-4 text-slate-500"} />
+                <Calendar
+                  className={
+                    ehHoje ? "w-4 h-4 text-white/80" : "w-4 h-4 text-slate-500"
+                  }
+                />
                 <span className="capitalize">{diaSemana}</span>, {dia}
               </span>
 
               <span className="inline-flex items-center gap-1.5">
-                <Clock className={ehHoje ? "w-4 h-4 text-white/80" : "w-4 h-4 text-slate-500"} />
+                <Clock
+                  className={
+                    ehHoje ? "w-4 h-4 text-white/80" : "w-4 h-4 text-slate-500"
+                  }
+                />
                 {hora}
               </span>
 
               <span className="inline-flex items-center gap-1.5">
-                <Briefcase className={ehHoje ? "w-4 h-4 text-white/80" : "w-4 h-4 text-slate-500"} />
+                <Briefcase
+                  className={
+                    ehHoje ? "w-4 h-4 text-white/80" : "w-4 h-4 text-slate-500"
+                  }
+                />
                 <span className="font-semibold">{agendamento.servico}</span>
               </span>
             </div>
@@ -364,10 +396,15 @@ export default function CardAgendamento({
           <div className="relative">
             <button
               onClick={() => setMenuAberto(!menuAberto)}
-              className={["p-2 rounded-lg transition-colors", ehHoje ? "hover:bg-white/10" : "hover:bg-slate-100"].join(" ")}
+              className={[
+                "p-2 rounded-lg transition-colors",
+                ehHoje ? "hover:bg-white/10" : "hover:bg-slate-100",
+              ].join(" ")}
               type="button"
             >
-              <MoreVertical className={ehHoje ? "w-4 h-4 text-white" : "w-4 h-4"} />
+              <MoreVertical
+                className={ehHoje ? "w-4 h-4 text-white" : "w-4 h-4"}
+              />
             </button>
 
             {menuAberto && (
@@ -418,7 +455,10 @@ export default function CardAgendamento({
 
                 <button
                   onClick={() => {
-                    const url = buildWhatsAppReminderLink({ agendamento, timezone: TIMEZONE });
+                    const url = buildWhatsAppReminderLink({
+                      agendamento,
+                      timezone: TIMEZONE,
+                    });
                     openWhatsApp(url);
                     setMenuAberto(false);
                   }}
@@ -454,7 +494,12 @@ export default function CardAgendamento({
             className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 hover:text-slate-900"
           >
             {detalhesAberto ? "Ocultar detalhes" : "Ver detalhes"}
-            <ChevronDown className={["w-4 h-4 transition-transform", detalhesAberto ? "rotate-180" : ""].join(" ")} />
+            <ChevronDown
+              className={[
+                "w-4 h-4 transition-transform",
+                detalhesAberto ? "rotate-180" : "",
+              ].join(" ")}
+            />
           </button>
 
           {agendamento.lembrete_enviado && (
@@ -472,7 +517,9 @@ export default function CardAgendamento({
                 <Mail className="w-4.5 h-4.5 text-slate-700" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[11px] text-slate-500 font-semibold">Email</p>
+                <p className="text-[11px] text-slate-500 font-semibold">
+                  Email
+                </p>
                 <a
                   href={`mailto:${agendamento.email}`}
                   className="text-sm font-semibold text-slate-900 hover:text-slate-700 hover:underline break-all"
@@ -482,10 +529,30 @@ export default function CardAgendamento({
               </div>
             </div>
 
+            {telefone && (
+              <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                <div className="h-9 w-9 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0">
+                  <Phone className="w-4.5 h-4.5 text-slate-700" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11px] text-slate-500 font-semibold">
+                    Contato
+                  </p>
+                  <p className="text-sm font-semibold text-slate-900 break-all">
+                    {telefone}
+                  </p>
+                </div>
+              </div>
+            )}
+
             {agendamento.observacoes && (
               <div className="p-3 bg-white rounded-lg border border-slate-200">
-                <p className="text-[11px] text-slate-500 font-semibold mb-1">Observações</p>
-                <p className="text-sm text-slate-700 whitespace-pre-wrap">{agendamento.observacoes}</p>
+                <p className="text-[11px] text-slate-500 font-semibold mb-1">
+                  Observações
+                </p>
+                <p className="text-sm text-slate-700 whitespace-pre-wrap">
+                  {agendamento.observacoes}
+                </p>
               </div>
             )}
           </div>
