@@ -49,7 +49,7 @@ router.post("/webhook", async (req, res) => {
         if (action === "reschedule") text = "🔁 Ok! Me diga um novo dia e horário para remarcar.";
         if (action === "other") text = "❓ Pode me dizer o que você precisa?";
 
-        await sendText(from, text);
+        await enviarTexto(from, text);
       }
     }
 
@@ -58,7 +58,7 @@ router.post("/webhook", async (req, res) => {
       const body = msg.text?.body?.trim();
       // TODO: aqui você pode interpretar "1/2/3" também, se quiser fallback
       // await tratarTexto(from, body);
-      await sendText(from, `Entendi: "${body}". Vou encaminhar ✅`);
+      await enviarTexto(from, `Entendi: "${body}". Vou encaminhar ✅`);
     }
 
     return res.sendStatus(200);
@@ -84,22 +84,24 @@ async function enviarTexto(to, text) {
       },
     }
   );
+  return resp.data;
 }
 
 router.post("/test-send", async (req, res) => {
   try {
-    const { to } = req.body; // ex: "5566997141110"
+    const { to } = req.body;
     if (!to) return res.status(400).json({ error: "Informe { to }" });
 
-    // mensagem simples
-    await enviarTexto(to, "📅 Teste: seu lembrete do agendamento chegou!");
+    const metaResp = await enviarTexto(to, "📅 Teste: seu lembrete do agendamento chegou!");
 
-    return res.json({ ok: true });
+    return res.json({ ok: true, metaResp }); // ✅ agora vem wamid
   } catch (err) {
     console.error(err?.response?.data || err.message);
-    return res.status(500).json({ error: "Falha ao enviar" });
+    return res.status(500).json({
+      error: "Falha ao enviar",
+      details: err?.response?.data || err.message,
+    });
   }
 });
-
 
 export default router;
