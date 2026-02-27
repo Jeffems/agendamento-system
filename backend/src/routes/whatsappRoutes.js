@@ -69,7 +69,7 @@ router.post("/webhook", async (req, res) => {
 });
 
 async function enviarTexto(to, text) {
-  await axios.post(
+  const resp = await axios.post(
     `https://graph.facebook.com/v20.0/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`,
     {
       messaging_product: "whatsapp",
@@ -84,6 +84,7 @@ async function enviarTexto(to, text) {
       },
     }
   );
+
   return resp.data;
 }
 
