@@ -1,4 +1,5 @@
-  {/*
+{
+  /*
   import React from "react";
   import { Calendar, CheckCircle2, Users, Clock } from "lucide-react";
   
@@ -144,15 +145,17 @@
       </div>
     );
   }
-  */}
-  import { useState } from "react";
+  */
+}
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import api from "../services/api";
 
+
 export default function Login() {
   const navigate = useNavigate();
-
+  const [inviteToken, setInviteToken] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loadingManual, setLoadingManual] = useState(false);
@@ -180,8 +183,7 @@ export default function Login() {
       toast.success("Login realizado com sucesso!");
       navigate("/");
     } catch (error) {
-      const message =
-        error.response?.data?.error || "Erro ao fazer login";
+      const message = error.response?.data?.error || "Erro ao fazer login";
       toast.error(message);
     } finally {
       setLoadingManual(false);
@@ -191,9 +193,7 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-100 p-6">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
-        <h1 className="text-2xl font-bold text-slate-900 mb-2">
-          Entrar
-        </h1>
+        <h1 className="text-2xl font-bold text-slate-900 mb-2">Entrar</h1>
         <p className="text-slate-600 mb-6">
           Acesse sua conta para gerenciar seus agendamentos
         </p>
@@ -249,12 +249,27 @@ export default function Login() {
           </button>
         </form>
 
-        <p className="text-sm text-slate-600 mt-6 text-center">
-          Não tem conta?{" "}
-          <Link to="/register" className="text-slate-900 font-medium underline">
-            Criar conta
-          </Link>
-        </p>
+        <div className="mt-6 text-center space-y-3">
+          <p className="text-sm text-slate-600">
+            Cadastro somente por convite.
+          </p>
+
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder="Cole o token do convite"
+              className="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
+              onChange={(e) => setInviteToken(e.target.value)}
+            />
+            <button
+              type="button"
+              className="px-4 py-2 bg-slate-900 text-white rounded-lg"
+              onClick={() => navigate(`/register?token=${inviteToken}`)}
+            >
+              Usar
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
