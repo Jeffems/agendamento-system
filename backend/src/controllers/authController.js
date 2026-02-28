@@ -1,10 +1,9 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
-
 
 const TERMS_VERSION = process.env.TERMS_VERSION || "2026-02-10";
 const PRIVACY_VERSION = process.env.PRIVACY_VERSION || "2026-02-10";
@@ -17,10 +16,14 @@ function signToken(user) {
   );
 }
 
+/**
+ * ✅ Cadastro agora exige inviteToken (convite)
+ */
 const registerSchema = z.object({
   nome: z.string().min(2).optional(),
   email: z.string().email(),
   password: z.string().min(8),
+  inviteToken: z.string().min(10), // ✅ obrigatório
   accept: z.object({
     terms: z.literal(true),
     privacy: z.literal(true),
@@ -37,16 +40,38 @@ export async function register(req, res) {
     });
   }
 
-  const { nome, email, password, accept } = parsed.data;
+  const { nome, email, password, inviteToken, accept } = parsed.data;
+
+  // ✅ valida convite
+  const invite = await prisma.invite.findUnique({
+    where: { token: inviteToken },
+  });
+
+  if (!invite) {
+    return res.status(403).json({ error: "Convite inválido." });
+  }
+  if (invite.usedAt) {
+    return res.status(403).json({ error: "Convite já utilizado." });
+  }
+  if (invite.expiresAt < new Date()) {
+    return res.status(403).json({ error: "Convite expirado." });
+  }
+  if (invite.email.toLowerCase() !== email.toLowerCase()) {
+    return res
+      .status(403)
+      .json({ error: "Este convite não é para este email." });
+  }
+
   const now = new Date();
   const passwordHash = await bcrypt.hash(password, 12);
 
   const existing = await prisma.usuario.findUnique({ where: { email } });
 
   let user;
+  const created = !existing;
 
   if (!existing) {
-    // cria normal
+    // ✅ cria normal
     user = await prisma.usuario.create({
       data: {
         email,
@@ -61,34 +86,44 @@ export async function register(req, res) {
       },
       select: { id: true, email: true, nome: true },
     });
+  } else {
+    // existe por email
 
-    const token = signToken(user);
-    return res.status(201).json({ user, token });
+    // se já tem senha, bloqueia re-cadastro
+    if (existing.password_hash) {
+      return res.status(409).json({ error: "Email já cadastrado. Faça login." });
+    }
+
+    // ✅ se existe sem senha (ex: Google), permite definir senha
+    user = await prisma.usuario.update({
+      where: { email },
+      data: {
+        password_hash: passwordHash,
+        nome: existing.nome ?? nome,
+        termos_aceitos_em: now,
+        termos_versao: TERMS_VERSION,
+        privacidade_aceita_em: now,
+        privacidade_versao: PRIVACY_VERSION,
+        marketing_aceito: accept.marketing ?? false,
+        marketing_aceito_em: accept.marketing ? now : null,
+      },
+      select: { id: true, email: true, nome: true },
+    });
   }
 
-  // Opção A: se existe por email e ainda não tem senha, vira "definir senha"
-  if (existing.password_hash) {
-    return res.status(409).json({ error: "Email já cadastrado. Faça login." });
-  }
-
-  user = await prisma.usuario.update({
-    where: { email },
-    data: {
-      password_hash: passwordHash,
-      // não sobrescreve nome do Google, só completa se estiver vazio
-      nome: existing.nome ?? nome,
-      termos_aceitos_em: now,
-      termos_versao: TERMS_VERSION,
-      privacidade_aceita_em: now,
-      privacidade_versao: PRIVACY_VERSION,
-      marketing_aceito: accept.marketing ?? false,
-      marketing_aceito_em: accept.marketing ? now : null,
-    },
-    select: { id: true, email: true, nome: true },
+  // ✅ marca convite como usado
+  await prisma.invite.update({
+    where: { id: invite.id },
+    data: { usedAt: new Date() },
   });
 
   const token = signToken(user);
-  return res.status(200).json({ user, token, message: "Senha definida com sucesso." });
+
+  return res.status(created ? 201 : 200).json({
+    user,
+    token,
+    message: created ? "Conta criada com sucesso." : "Senha definida com sucesso.",
+  });
 }
 
 const loginSchema = z.object({
@@ -108,7 +143,8 @@ export async function login(req, res) {
 
   if (!user.password_hash) {
     return res.status(401).json({
-      error: "Essa conta não tem senha ainda. Faça login com Google ou defina uma senha no cadastro.",
+      error:
+        "Essa conta não tem senha ainda. Faça login com Google ou defina uma senha no cadastro.",
     });
   }
 
@@ -117,7 +153,9 @@ export async function login(req, res) {
 
   // se por algum motivo não aceitou, bloqueia login
   if (!user.termos_aceitos_em || !user.privacidade_aceita_em) {
-    return res.status(403).json({ error: "É necessário aceitar os termos e a política de privacidade." });
+    return res
+      .status(403)
+      .json({ error: "É necessário aceitar os termos e a política de privacidade." });
   }
 
   const token = signToken(user);
@@ -149,8 +187,7 @@ export async function me(req, res) {
 
   return res.json({
     user,
-    needsTerms:
-      !user.termos_aceitos_em || !user.privacidade_aceita_em,
+    needsTerms: !user.termos_aceitos_em || !user.privacidade_aceita_em,
   });
 }
 

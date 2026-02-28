@@ -42,12 +42,14 @@ import authRoutes from "./auth/authRoutes.js";
 import { iniciarCronLembretes } from "./services/lembreteService.js";
 import { executarLembretesAgora } from "./services/lembreteService.js";
 import whatsappRoutes from "./routes/whatsappRoutes.js";
+import inviteRoutes from "./routes/inviteRoutes.js";
 
 dotenv.config();
 
 const app = express(); // ⚠️ TEM que vir ANTES de app.use
 const PORT = process.env.PORT || 3001;
 
+app.use("/invite", inviteRoutes);
 app.use(cors());
 app.use(express.json());
 app.use("/whatsapp", whatsappRoutes);

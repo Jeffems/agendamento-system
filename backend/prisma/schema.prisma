@@ -50,4 +50,14 @@ model Agendamento {
 
   @@map("agendamentos")
 }
+model Invite {
+  id          String   @id @default(uuid())
+  email       String
+  token       String   @unique
+  expiresAt   DateTime
+  usedAt      DateTime?
+  createdAt   DateTime @default(now())
 
+  // opcional
+  role        String?  // ex: "ADMIN", "USER"
+}
