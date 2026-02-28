@@ -27,6 +27,13 @@ model Usuario {
   updated_at DateTime @updatedAt @db.Timestamptz(6)
 
   agendamentos Agendamento[]
+    wa_status              String   @default("not_connected") // not_connected | connected | error
+  wa_waba_id              String?
+  wa_phone_number_id      String?  @unique
+  wa_display_phone_number String?
+  wa_access_token         String?   // depois você criptografa
+  wa_connected_at         DateTime?
+  wa_last_error           String?
 
   @@map("usuarios")
 }
@@ -47,6 +54,10 @@ model Agendamento {
 
   usuarioId String?
   usuario   Usuario? @relation(fields: [usuarioId], references: [id])
+
+  lembrete_email_enviado    Boolean @default(false)
+  lembrete_whatsapp_enviado Boolean @default(false)
+  
 
   @@map("agendamentos")
 }

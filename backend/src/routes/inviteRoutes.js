@@ -1,6 +1,6 @@
 import express from "express";
 import crypto from "crypto";
-import prisma from "../prisma/client.js";
+import { PrismaClient } from "@prisma/client";
 
 const router = express.Router();
 
@@ -15,7 +15,7 @@ router.post("/create", async (req, res) => {
 
     const token = crypto.randomBytes(32).toString("hex");
 
-    const invite = await prisma.invite.create({
+    const invite = await PrismaClient.invite.create({
       data: {
         email,
         token,
