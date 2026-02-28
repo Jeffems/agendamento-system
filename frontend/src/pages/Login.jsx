@@ -264,7 +264,14 @@ export default function Login() {
             <button
               type="button"
               className="px-4 py-2 bg-slate-900 text-white rounded-lg"
-              onClick={() => navigate(`/register?token=${inviteToken}`)}
+              onClick={() => {
+                if (!inviteToken || inviteToken.length < 10) {
+                  toast.error("Token de convite inválido");
+                  return;
+                }
+              
+                navigate(`/register?token=${inviteToken}`);
+              }}
             >
               Usar
             </button>
