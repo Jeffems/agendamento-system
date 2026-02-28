@@ -1,11 +1,14 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Register from "./pages/Register";
+
+import Register from "../pages/Register";
 import App from "./App";
 import Login from "./pages/Login";
 import AuthCallback from "./pages/AuthCallback.jsx";
 import PrivateRoute from "./components/PrivateRoute";
+import WhatsappSettings from "./pages/WhatsappSettings.jsx";
+import AppShell from "./components/AppShell.jsx";
 
 import "./index.css";
 
@@ -20,7 +23,11 @@ ReactDOM.createRoot(document.getElementById("root")).render(
 
         {/* Rotas protegidas */}
         <Route element={<PrivateRoute />}>
-          <Route path="/" element={<App />} />
+          {/* AppShell dá o menu + Outlet */}
+          <Route element={<AppShell />}>
+            <Route path="/" element={<App />} />
+            <Route path="/settings/whatsapp" element={<WhatsappSettings />} />
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>

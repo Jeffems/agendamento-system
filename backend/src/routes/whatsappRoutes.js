@@ -1,9 +1,11 @@
 import express from "express";
 import { authMiddleware } from "../middlewares/authMiddleware.js";
-import { connectWhatsApp, sendTest, webhookHandler } from "../controllers/whatsappController.js";
+import { connectWhatsApp, sendTest, webhookHandler, getMyWhatsApp } from "../controllers/whatsappController.js";
 
 const router = express.Router();
 console.log("✅ whatsappRoutes carregado");
+
+router.get("/me", authMiddleware, getMyWhatsApp);
 
 // Verificação do webhook (Meta)
 router.get("/webhook", (req, res) => {

@@ -7,6 +7,32 @@ const prisma = new PrismaClient();
  * POST /whatsapp/connect
  * body: { wabaId?, phoneNumberId, displayPhoneNumber?, accessToken }
  */
+
+export async function getMyWhatsApp(req, res) {
+    try {
+      const userId = req.userId;
+  
+      const user = await prisma.usuario.findUnique({
+        where: { id: userId },
+        select: {
+          wa_status: true,
+          wa_waba_id: true,
+          wa_phone_number_id: true,
+          wa_display_phone_number: true,
+          wa_connected_at: true,
+          wa_last_error: true,
+          // nunca retorne wa_access_token
+        },
+      });
+  
+      return res.json({ ok: true, whatsapp: user });
+    } catch (err) {
+      console.error("getMyWhatsApp error:", err);
+      return res.status(500).json({ error: "Erro ao buscar status do WhatsApp." });
+    }
+  }
+
+  
 export async function connectWhatsApp(req, res) {
   try {
     const userId = req.userId;
