@@ -17,7 +17,7 @@ import {
   LayoutGrid,
   List,
   Calendar,
-  settings,
+  Settings,
 } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import { agendamentosAPI } from "../services/api";
@@ -319,7 +319,7 @@ export default function Agendamentos() {
                 WhatsApp
               
               </button>
-              
+
               <button
                 onClick={() => {
                   setAgendamentoEditando(null);
