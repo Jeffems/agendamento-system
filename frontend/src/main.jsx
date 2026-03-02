@@ -9,7 +9,6 @@ import AuthCallback from "./pages/AuthCallback.jsx";
 import PrivateRoute from "./components/PrivateRoute";
 import WhatsappSettings from "./pages/WhatsappSettings.jsx";
 
-
 import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
@@ -23,9 +22,8 @@ ReactDOM.createRoot(document.getElementById("root")).render(
 
         {/* Rotas protegidas */}
         <Route element={<PrivateRoute />}>
-        <Route path="/" element={<App />} />
-        <Route path="/settings/whatsapp" element={<WhatsappSettings />} />
-        </Route>
+          <Route path="/" element={<App />} />
+          <Route path="/settings/whatsapp" element={<WhatsappSettings />} />
         </Route>
       </Routes>
     </BrowserRouter>
