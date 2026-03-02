@@ -8,7 +8,7 @@ import Login from "./pages/Login";
 import AuthCallback from "./pages/AuthCallback.jsx";
 import PrivateRoute from "./components/PrivateRoute";
 import WhatsappSettings from "./pages/WhatsappSettings.jsx";
-import AppShell from "./components/AppShell.jsx";
+
 
 import "./index.css";
 
