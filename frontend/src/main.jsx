@@ -23,8 +23,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
 
         {/* Rotas protegidas */}
         <Route element={<PrivateRoute />}>
-          {/* AppShell dá o menu + Outlet */}
-          <Route element={<AppShell />}>
+          
             <Route path="/" element={<App />} />
             <Route path="/settings/whatsapp" element={<WhatsappSettings />} />
           </Route>
