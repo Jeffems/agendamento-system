@@ -23,10 +23,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
 
         {/* Rotas protegidas */}
         <Route element={<PrivateRoute />}>
-          
-            <Route path="/" element={<App />} />
-            <Route path="/settings/whatsapp" element={<WhatsappSettings />} />
-          </Route>
+        <Route path="/" element={<App />} />
+        <Route path="/settings/whatsapp" element={<WhatsappSettings />} />
+        </Route>
         </Route>
       </Routes>
     </BrowserRouter>
