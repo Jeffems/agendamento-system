@@ -295,7 +295,7 @@ export default function Agendamentos() {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <h1 className="text-4xl font-bold text-slate-900 mb-2">
-                Sistema de Agendamentos
+                AGENDA
               </h1>
               <p className="text-slate-600">
                 Gerencie seus agendamentos de forma profissional
