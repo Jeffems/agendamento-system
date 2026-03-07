@@ -1,32 +1,42 @@
-/*import axios from "axios";
-const api = axios.create ({
-    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001/api',
-});
-
-export const agendamentosAPI = {
-    listar: () => api.get('/agendamentos'),
-    obter: (id) => api.get(`/agendamentos/${id}`),
-    criar: (dados) => api.post('/agendamentos', dados),
-    atualizar: (id, dados) => api.put(`/agendamentos/${id}`, dados),
-    deletar: (id) => api.delete(`/agendamentos/${id}`),
-  };
-  
-  export default api;
-  */
-
-  import axios from "axios";
+import axios from "axios";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "http://localhost:3001",
+  timeout: 15000,
 });
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
+
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error?.response?.status === 401) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+
+      if (window.location.pathname !== "/login") {
+        window.location.href = "/login";
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+
+export const authAPI = {
+  me: () => api.get("/auth/me"),
+  login: (dados) => api.post("/auth/login", dados),
+  register: (dados) => api.post("/auth/register", dados),
+  acceptTerms: (dados) => api.post("/auth/accept-terms", dados),
+};
 
 export const agendamentosAPI = {
   listar: () => api.get("/api/agendamentos"),

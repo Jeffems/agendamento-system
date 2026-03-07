@@ -1,33 +1,56 @@
 import express from "express";
 import crypto from "crypto";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../lib/prisma.js";
+import { authMiddleware } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
-// gerar convite
-router.post("/create", async (req, res) => {
+router.post("/create", authMiddleware, async (req, res) => {
   try {
-    const { email } = req.body;
+    const email = String(req.body?.email || "")
+      .trim()
+      .toLowerCase();
 
     if (!email) {
       return res.status(400).json({ error: "Email obrigatório" });
     }
 
+    const conviteExistente = await prisma.invite.findFirst({
+      where: {
+        email,
+        usedAt: null,
+        expiresAt: {
+          gt: new Date(),
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    if (conviteExistente) {
+      return res.status(409).json({
+        error: "Já existe um convite ativo para este email",
+      });
+    }
+
     const token = crypto.randomBytes(32).toString("hex");
 
-    const invite = await PrismaClient.invite.create({
+    const invite = await prisma.invite.create({
       data: {
         email,
         token,
-        expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 2), // 2 dias
+        expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 2),
       },
     });
 
     return res.json({
-      inviteLink: `https://agendamento-system.vercel.app/register?token=${token}`,
+      id: invite.id,
+      inviteLink: `${process.env.FRONTEND_URL}/register?token=${token}`,
+      expiresAt: invite.expiresAt,
     });
   } catch (err) {
-    console.error(err);
+    console.error("Erro ao criar convite:", err);
     return res.status(500).json({ error: "Erro ao criar convite" });
   }
 });

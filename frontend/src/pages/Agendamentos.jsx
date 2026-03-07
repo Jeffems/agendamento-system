@@ -78,6 +78,7 @@ export default function Agendamentos() {
   const handleSalvar = async (dados) => {
     try {
       setProcessando(true);
+  
       if (agendamentoEditando) {
         await agendamentosAPI.atualizar(agendamentoEditando.id, dados);
         toast.success("Agendamento atualizado com sucesso!");
@@ -85,11 +86,15 @@ export default function Agendamentos() {
         await agendamentosAPI.criar(dados);
         toast.success("Agendamento criado com sucesso!");
       }
+  
       await carregarAgendamentos();
       setMostrarFormulario(false);
       setAgendamentoEditando(null);
     } catch (error) {
-      toast.error("Erro ao salvar agendamento");
+      const message =
+        error?.response?.data?.error || "Erro ao salvar agendamento";
+  
+      toast.error(message);
     } finally {
       setProcessando(false);
     }

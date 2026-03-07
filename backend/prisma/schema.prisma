@@ -7,68 +7,76 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum StatusAgendamento {
+  pendente
+  confirmado
+  concluido
+  cancelado
+}
+
 model Usuario {
-  id         String   @id @default(uuid())
-  google_id  String?  @unique
-  nome       String?
-  email      String   @unique
-  avatar     String?
+  id                      String   @id @default(uuid())
+  google_id               String?  @unique
+  nome                    String?
+  email                   String   @unique
+  avatar                  String?
+  password_hash           String?
 
-  password_hash String?
+  termos_aceitos_em       DateTime?
+  termos_versao           String?
+  privacidade_aceita_em   DateTime?
+  privacidade_versao      String?
+  marketing_aceito        Boolean  @default(false)
+  marketing_aceito_em     DateTime?
 
-  termos_aceitos_em      DateTime?
-  termos_versao          String?
-  privacidade_aceita_em  DateTime?
-  privacidade_versao     String?
-  marketing_aceito       Boolean  @default(false)
-  marketing_aceito_em    DateTime?
+  created_at              DateTime @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime @updatedAt @db.Timestamptz(6)
 
-  created_at DateTime @default(now()) @db.Timestamptz(6)
-  updated_at DateTime @updatedAt @db.Timestamptz(6)
-
-  agendamentos Agendamento[]
-    wa_status              String   @default("not_connected") // not_connected | connected | error
+  wa_status               String   @default("not_connected")
   wa_waba_id              String?
   wa_phone_number_id      String?  @unique
   wa_display_phone_number String?
-  wa_access_token         String?   // depois você criptografa
+  wa_access_token         String?
   wa_connected_at         DateTime?
   wa_last_error           String?
+
+  agendamentos            Agendamento[]
 
   @@map("usuarios")
 }
 
 model Agendamento {
-  id               String   @id @default(uuid())
-  nome             String
-  sobrenome        String
-  email            String?  // <- agora opcional
-  contato          String?  // <- novo campo opcional (whatsapp/telefone)
-  servico          String
-  data_agendamento DateTime @db.Timestamptz(6)
-  status           String   @default("pendente")
-  lembrete_enviado Boolean  @default(false)
-  observacoes      String?
-  created_at       DateTime @default(now()) @db.Timestamptz(6)
-  updated_at       DateTime @updatedAt @db.Timestamptz(6)
+  id                         String             @id @default(uuid())
+  nome                       String
+  sobrenome                  String
+  email                      String?
+  contato                    String?
+  servico                    String
+  data_agendamento           DateTime           @db.Timestamptz(6)
+  duracao_min                Int                @default(60)
+  status                     StatusAgendamento  @default(pendente)
+  lembrete_enviado           Boolean            @default(false)
+  lembrete_email_enviado     Boolean            @default(false)
+  lembrete_whatsapp_enviado  Boolean            @default(false)
+  observacoes                String?
+  created_at                 DateTime           @default(now()) @db.Timestamptz(6)
+  updated_at                 DateTime           @updatedAt @db.Timestamptz(6)
 
-  usuarioId String?
-  usuario   Usuario? @relation(fields: [usuarioId], references: [id])
+  usuarioId                  String?
+  usuario                    Usuario?           @relation(fields: [usuarioId], references: [id])
 
-  lembrete_email_enviado    Boolean @default(false)
-  lembrete_whatsapp_enviado Boolean @default(false)
-  
-
+  @@index([usuarioId])
+  @@index([data_agendamento])
+  @@index([usuarioId, data_agendamento])
   @@map("agendamentos")
 }
-model Invite {
-  id          String   @id @default(uuid())
-  email       String
-  token       String   @unique
-  expiresAt   DateTime
-  usedAt      DateTime?
-  createdAt   DateTime @default(now())
 
-  // opcional
-  role        String?  // ex: "ADMIN", "USER"
+model Invite {
+  id        String   @id @default(uuid())
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+  role      String?
 }
