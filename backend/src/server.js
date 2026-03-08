@@ -54,6 +54,8 @@ import whatsappRoutes from "./routes/whatsappRoutes.js";
 import inviteRoutes from "./routes/inviteRoutes.js";
 
 import { iniciarCronLembretes } from "./services/lembreteService.js";
+import { executarLembretesAgora } from "./services/lembreteService.js";
+executarLembretesAgora();
 
 dotenv.config();
 
