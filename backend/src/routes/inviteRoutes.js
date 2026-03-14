@@ -1,6 +1,6 @@
 import express from "express";
 import crypto from "crypto";
-import { prisma } from "../lib/prisma.js";
+import prisma from "../lib/prisma.js";
 import { authMiddleware } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
