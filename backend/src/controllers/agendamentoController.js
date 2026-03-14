@@ -1,5 +1,5 @@
 import { addMinutes, isValid } from "date-fns";
-import { prisma } from "../lib/prisma.js";
+import prisma from "../lib/prisma.js";
 import { agendamentoSchema } from "../validators/agendamentoSchemas.js";
 
 function normalizeAgendamentoPayload(body) {
