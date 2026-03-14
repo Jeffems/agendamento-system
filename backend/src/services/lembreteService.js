@@ -178,18 +178,22 @@ async function enviarWhatsAppTemplate(agendamento) {
         parameters: [
           {
             type: "text",
+            parameter_name: "nome",
             text: `${agendamento.nome} ${agendamento.sobrenome}`.trim(),
           },
           {
             type: "text",
+            parameter_name: "servico",
             text: agendamento.servico || "Agendamento",
           },
           {
             type: "text",
+            parameter_name: "dia",
             text: dataFmt,
           },
           {
             type: "text",
+            parameter_name: "horas",
             text: hora,
           },
         ],
