@@ -37,6 +37,8 @@ model Usuario {
   wa_phone_number_id      String?  @unique
   wa_display_phone_number String?
   wa_access_token         String?
+  wa_template_name        String?
+  wa_template_language    String?  @default("pt_BR")
   wa_connected_at         DateTime?
   wa_last_error           String?
 

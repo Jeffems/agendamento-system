@@ -1,17 +1,16 @@
 import cron from "node-cron";
-import { PrismaClient } from "@prisma/client";
 import { Resend } from "resend";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { ptBR } from "date-fns/locale";
-import axios from "axios";
+import prisma from "../lib/prisma.js";
+import { sendTemplate } from "./whatsappService.js";
+import { decrypt } from "../utils/crypto.js";
 
-const prisma = new PrismaClient();
+
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const TZ = process.env.APP_TIMEZONE || "America/Cuiaba";
-const WHATSAPP_TEMPLATE_NAME =
-  process.env.WHATSAPP_TEMPLATE_NAME || "lembrete_agendamento";
-const WHATSAPP_TEMPLATE_LANG = process.env.WHATSAPP_TEMPLATE_LANG || "pt_BR";
+
 
 function getFromEmail() {
   return process.env.EMAIL_FROM || "onboarding@resend.dev";
@@ -114,16 +113,39 @@ async function enviarEmailLembrete(agendamento) {
 }
 
 async function enviarWhatsAppTemplate(agendamento) {
-  if (!process.env.WHATSAPP_PHONE_NUMBER_ID) {
-    throw new Error("WHATSAPP_PHONE_NUMBER_ID não configurada");
-  }
-
-  if (!process.env.WHATSAPP_TOKEN) {
-    throw new Error("WHATSAPP_TOKEN não configurada");
-  }
-
   if (!agendamento.contato) {
     return;
+  }
+
+  if (!agendamento.usuarioId) {
+    throw new Error("Agendamento sem usuarioId.");
+  }
+
+  const usuario = await prisma.usuario.findUnique({
+    where: { id: agendamento.usuarioId },
+    select: {
+      wa_status: true,
+      wa_phone_number_id: true,
+      wa_access_token: true,
+      wa_template_name: true,
+      wa_template_language: true,
+    },
+  });
+
+  if (!usuario) {
+    throw new Error("Usuário do agendamento não encontrado.");
+  }
+
+  if (usuario.wa_status !== "connected") {
+    throw new Error("WhatsApp do usuário não está conectado.");
+  }
+
+  if (!usuario.wa_phone_number_id || !usuario.wa_access_token) {
+    throw new Error("Configuração incompleta de WhatsApp do usuário.");
+  }
+
+  if (!usuario.wa_template_name) {
+    throw new Error("Template do WhatsApp não configurado para este usuário.");
   }
 
   const numeroDestino = normalizarTelefoneBR(agendamento.contato);
@@ -137,60 +159,45 @@ async function enviarWhatsAppTemplate(agendamento) {
   const hora = formatInTimeZone(dataAgendamento, TZ, "HH:mm", {
     locale: ptBR,
   });
+
   const dataFmt = formatInTimeZone(dataAgendamento, TZ, "dd/MM/yyyy", {
     locale: ptBR,
   });
 
-  const url = `https://graph.facebook.com/v20.0/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`;
+  const accessToken = decrypt(usuario.wa_access_token);
 
-  const payload = {
-    messaging_product: "whatsapp",
+  const response = await sendTemplate({
+    phoneNumberId: usuario.wa_phone_number_id,
+    accessToken,
     to: numeroDestino,
-    type: "template",
-    template: {
-      name: WHATSAPP_TEMPLATE_NAME,
-      language: {
-        code: WHATSAPP_TEMPLATE_LANG,
+    templateName: usuario.wa_template_name,
+    lang: usuario.wa_template_language || "pt_BR",
+    components: [
+      {
+        type: "body",
+        parameters: [
+          {
+            type: "text",
+            text: `${agendamento.nome} ${agendamento.sobrenome}`.trim(),
+          },
+          {
+            type: "text",
+            text: agendamento.servico || "Agendamento",
+          },
+          {
+            type: "text",
+            text: dataFmt,
+          },
+          {
+            type: "text",
+            text: hora,
+          },
+        ],
       },
-      components: [
-        {
-          type: "body",
-          parameters: [
-            {
-              type: "text",
-              parameter_name: "nome",
-              text: `${agendamento.nome} ${agendamento.sobrenome}`.trim(),
-            },
-            {
-              type: "text",
-              parameter_name: "servico",
-              text: agendamento.servico || "Agendamento",
-            },
-            {
-              type: "text",
-              parameter_name: "dia",
-              text: dataFmt,
-            },
-            {
-              type: "text",
-              parameter_name: "horas",
-              text: hora,
-            },
-          ],
-        },
-      ],
-    },
-  };
-
-  const response = await axios.post(url, payload, {
-    headers: {
-      Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
-      "Content-Type": "application/json",
-    },
-    timeout: 15000,
+    ],
   });
 
-  return response.data;
+  return response;
 }
 
 function getJanelaAmanhaUtc() {
@@ -251,15 +258,19 @@ async function enviarLembretes() {
     let falhasWhatsapp = 0;
 
     for (const agendamento of agendamentos) {
-      let envioRealizado = false;
-
-      // EMAIL
-      if (agendamento.email && String(agendamento.email).trim() !== "") {
+      let emailEnviado = false;
+      let whatsappEnviado = false;
+    
+      if (
+        agendamento.email &&
+        String(agendamento.email).trim() !== "" &&
+        !agendamento.lembrete_email_enviado
+      ) {
         try {
           const result = await enviarEmailLembrete(agendamento);
           enviadosEmail++;
-          envioRealizado = true;
-
+          emailEnviado = true;
+    
           console.log(
             `✅ Email enviado (Resend) para ${agendamento.email}`,
             result?.data?.id || ""
@@ -272,14 +283,17 @@ async function enviarLembretes() {
           );
         }
       }
-
-      // WHATSAPP TEMPLATE
-      if (agendamento.contato && String(agendamento.contato).trim() !== "") {
+    
+      if (
+        agendamento.contato &&
+        String(agendamento.contato).trim() !== "" &&
+        !agendamento.lembrete_whatsapp_enviado
+      ) {
         try {
           const result = await enviarWhatsAppTemplate(agendamento);
           enviadosWhatsapp++;
-          envioRealizado = true;
-
+          whatsappEnviado = true;
+    
           console.log(
             `✅ WhatsApp template enviado para ${agendamento.contato}`,
             result?.messages?.[0]?.id || ""
@@ -290,14 +304,34 @@ async function enviarLembretes() {
             `❌ Erro ao enviar WhatsApp template para ${agendamento.contato}:`,
             error?.response?.data || error?.message || error
           );
+    
+          if (agendamento.usuarioId) {
+            try {
+              await prisma.usuario.update({
+                where: { id: agendamento.usuarioId },
+                data: {
+                  wa_last_error: JSON.stringify(
+                    error?.response?.data || error?.message || error
+                  ),
+                },
+              });
+            } catch {}
+          }
         }
       }
-
-      // marca como enviado se pelo menos um canal funcionou
-      if (envioRealizado) {
+    
+      if (emailEnviado || whatsappEnviado) {
         await prisma.agendamento.update({
           where: { id: agendamento.id },
-          data: { lembrete_enviado: true },
+          data: {
+            lembrete_email_enviado:
+              agendamento.lembrete_email_enviado || emailEnviado,
+            lembrete_whatsapp_enviado:
+              agendamento.lembrete_whatsapp_enviado || whatsappEnviado,
+            lembrete_enviado:
+              (agendamento.lembrete_email_enviado || emailEnviado) ||
+              (agendamento.lembrete_whatsapp_enviado || whatsappEnviado),
+          },
         });
       }
     }

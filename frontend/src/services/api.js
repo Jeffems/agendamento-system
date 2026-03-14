@@ -46,4 +46,11 @@ export const agendamentosAPI = {
   deletar: (id) => api.delete(`/api/agendamentos/${id}`),
 };
 
+export const whatsappAPI = {
+  me: () => api.get("/whatsapp/me"),
+  connect: (dados) => api.post("/whatsapp/connect", dados),
+  sendTest: (dados) => api.post("/whatsapp/send-test", dados),
+  disconnect: () => api.delete("/whatsapp/disconnect"),
+};
+
 export default api;

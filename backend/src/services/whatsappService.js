@@ -12,7 +12,10 @@ export async function sendText({ phoneNumberId, accessToken, to, text }) {
       text: { body: text },
     },
     {
-      headers: { Authorization: `Bearer ${accessToken}` },
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
       timeout: 15000,
     }
   );
@@ -20,7 +23,14 @@ export async function sendText({ phoneNumberId, accessToken, to, text }) {
   return resp.data;
 }
 
-export async function sendTemplate({ phoneNumberId, accessToken, to, templateName, lang = "pt_BR", components = [] }) {
+export async function sendTemplate({
+  phoneNumberId,
+  accessToken,
+  to,
+  templateName,
+  lang = "pt_BR",
+  components = [],
+}) {
   const url = `https://graph.facebook.com/v20.0/${phoneNumberId}/messages`;
 
   const resp = await axios.post(
@@ -36,7 +46,10 @@ export async function sendTemplate({ phoneNumberId, accessToken, to, templateNam
       },
     },
     {
-      headers: { Authorization: `Bearer ${accessToken}` },
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
       timeout: 15000,
     }
   );

@@ -1,13 +1,18 @@
 import express from "express";
 import { authMiddleware } from "../middlewares/authMiddleware.js";
-import { connectWhatsApp, sendTest, webhookHandler, getMyWhatsApp } from "../controllers/whatsappController.js";
+import {
+  connectWhatsApp,
+  sendTest,
+  webhookHandler,
+  getMyWhatsApp,
+  disconnectWhatsApp,
+} from "../controllers/whatsappController.js";
 
 const router = express.Router();
 console.log("✅ whatsappRoutes carregado");
 
 router.get("/me", authMiddleware, getMyWhatsApp);
 
-// Verificação do webhook (Meta)
 router.get("/webhook", (req, res) => {
   const mode = req.query["hub.mode"];
   const token = req.query["hub.verify_token"];
@@ -16,16 +21,14 @@ router.get("/webhook", (req, res) => {
   if (mode === "subscribe" && token === process.env.WHATSAPP_VERIFY_TOKEN) {
     return res.status(200).send(challenge);
   }
+
   return res.sendStatus(403);
 });
 
-// Recebimento de eventos (multi-tenant)
 router.post("/webhook", webhookHandler);
 
-// Conectar WhatsApp por usuário (multi-conta)
 router.post("/connect", authMiddleware, connectWhatsApp);
-
-// Enviar teste com credenciais do usuário logado
 router.post("/send-test", authMiddleware, sendTest);
+router.delete("/disconnect", authMiddleware, disconnectWhatsApp);
 
 export default router;

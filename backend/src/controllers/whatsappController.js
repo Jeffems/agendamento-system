@@ -1,45 +1,76 @@
-import { PrismaClient } from "@prisma/client";
-import { sendText } from "../services/whatsappService.js";
+import prisma from "../lib/prisma.js";
+import { sendText, sendTemplate } from "../services/whatsappService.js";
+import { encrypt, decrypt } from "../utils/crypto.js";
 
-const prisma = new PrismaClient();
+function normalizarTelefoneBR(numero) {
+  if (!numero) return null;
 
-/**
- * POST /whatsapp/connect
- * body: { wabaId?, phoneNumberId, displayPhoneNumber?, accessToken }
- */
+  let digits = String(numero).replace(/\D/g, "");
 
-export async function getMyWhatsApp(req, res) {
-    try {
-      const userId = req.userId;
-  
-      const user = await prisma.usuario.findUnique({
-        where: { id: userId },
-        select: {
-          wa_status: true,
-          wa_waba_id: true,
-          wa_phone_number_id: true,
-          wa_display_phone_number: true,
-          wa_connected_at: true,
-          wa_last_error: true,
-          // nunca retorne wa_access_token
-        },
-      });
-  
-      return res.json({ ok: true, whatsapp: user });
-    } catch (err) {
-      console.error("getMyWhatsApp error:", err);
-      return res.status(500).json({ error: "Erro ao buscar status do WhatsApp." });
-    }
+  if (!digits) return null;
+
+  if (digits.startsWith("0")) {
+    digits = digits.replace(/^0+/, "");
   }
 
-  
+  if (!digits.startsWith("55")) {
+    digits = `55${digits}`;
+  }
+
+  if (digits.length < 12 || digits.length > 13) {
+    return null;
+  }
+
+  return digits;
+}
+
+export async function getMyWhatsApp(req, res) {
+  try {
+    const userId = req.userId;
+
+    const user = await prisma.usuario.findUnique({
+      where: { id: userId },
+      select: {
+        wa_status: true,
+        wa_waba_id: true,
+        wa_phone_number_id: true,
+        wa_display_phone_number: true,
+        wa_template_name: true,
+        wa_template_language: true,
+        wa_connected_at: true,
+        wa_last_error: true,
+      },
+    });
+
+    return res.json({ ok: true, whatsapp: user });
+  } catch (err) {
+    console.error("getMyWhatsApp error:", err);
+    return res.status(500).json({ error: "Erro ao buscar status do WhatsApp." });
+  }
+}
+
 export async function connectWhatsApp(req, res) {
   try {
     const userId = req.userId;
-    const { wabaId, phoneNumberId, displayPhoneNumber, accessToken } = req.body;
+    const {
+      wabaId,
+      phoneNumberId,
+      displayPhoneNumber,
+      accessToken,
+      templateName,
+      templateLanguage,
+    } = req.body;
 
     if (!phoneNumberId || !accessToken) {
-      return res.status(400).json({ error: "phoneNumberId e accessToken são obrigatórios." });
+      return res.status(400).json({
+        error: "phoneNumberId e accessToken são obrigatórios.",
+      });
+    }
+
+    if (!templateName) {
+      return res.status(400).json({
+        error: "templateName é obrigatório.",
+      });
     }
 
     const updated = await prisma.usuario.update({
@@ -49,7 +80,9 @@ export async function connectWhatsApp(req, res) {
         wa_waba_id: wabaId ?? null,
         wa_phone_number_id: phoneNumberId,
         wa_display_phone_number: displayPhoneNumber ?? null,
-        wa_access_token: accessToken, // depois a gente criptografa
+        wa_access_token: encrypt(accessToken),
+        wa_template_name: templateName,
+        wa_template_language: templateLanguage || "pt_BR",
         wa_connected_at: new Date(),
         wa_last_error: null,
       },
@@ -58,6 +91,8 @@ export async function connectWhatsApp(req, res) {
         wa_status: true,
         wa_phone_number_id: true,
         wa_display_phone_number: true,
+        wa_template_name: true,
+        wa_template_language: true,
       },
     });
 
@@ -68,44 +103,123 @@ export async function connectWhatsApp(req, res) {
   }
 }
 
-/**
- * POST /whatsapp/send-test
- * body: { to }
- */
 export async function sendTest(req, res) {
   try {
     const userId = req.userId;
     const { to } = req.body;
 
-    if (!to) return res.status(400).json({ error: "Informe { to } com DDI. Ex: 5566999999999" });
+    if (!to) {
+      return res.status(400).json({
+        error: "Informe { to } com DDI. Ex: 5566999999999",
+      });
+    }
 
     const user = await prisma.usuario.findUnique({
       where: { id: userId },
-      select: { wa_phone_number_id: true, wa_access_token: true, wa_status: true },
+      select: {
+        wa_phone_number_id: true,
+        wa_access_token: true,
+        wa_status: true,
+        wa_template_name: true,
+        wa_template_language: true,
+      },
     });
 
     if (!user?.wa_phone_number_id || !user?.wa_access_token) {
-      return res.status(400).json({ error: "WhatsApp não conectado para este usuário." });
+      return res.status(400).json({
+        error: "WhatsApp não conectado para este usuário.",
+      });
     }
 
-    const metaResp = await sendText({
+    if (!user?.wa_template_name) {
+      return res.status(400).json({
+        error: "Template não configurado para este usuário.",
+      });
+    }
+
+    const numeroDestino = normalizarTelefoneBR(to);
+
+    if (!numeroDestino) {
+      return res.status(400).json({
+        error: "Telefone inválido. Use formato 5566999999999",
+      });
+    }
+
+    const accessToken = decrypt(user.wa_access_token);
+
+    const metaResp = await sendTemplate({
       phoneNumberId: user.wa_phone_number_id,
-      accessToken: user.wa_access_token,
-      to,
-      text: "✅ Teste enviado com seu número conectado no SaaS.",
+      accessToken,
+      to: numeroDestino,
+      templateName: user.wa_template_name,
+      lang: user.wa_template_language || "pt_BR",
+      components: [
+        {
+          type: "body",
+          parameters: [
+            { type: "text", text: "Cliente Teste" },
+            { type: "text", text: "Serviço Teste" },
+            { type: "text", text: "10/03/2026" },
+            { type: "text", text: "14:00" },
+          ],
+        },
+      ],
+    });
+
+    await prisma.usuario.update({
+      where: { id: userId },
+      data: {
+        wa_status: "connected",
+        wa_last_error: null,
+      },
     });
 
     return res.json({ ok: true, metaResp });
   } catch (err) {
     console.error("sendTest error:", err?.response?.data || err);
-    return res.status(500).json({ error: "Falha ao enviar teste.", details: err?.response?.data || err.message });
+
+    try {
+      await prisma.usuario.update({
+        where: { id: req.userId },
+        data: {
+          wa_last_error: JSON.stringify(err?.response?.data || err?.message || err),
+        },
+      });
+    } catch {}
+
+    return res.status(500).json({
+      error: "Falha ao enviar teste.",
+      details: err?.response?.data || err.message,
+    });
   }
 }
 
-/**
- * POST /whatsapp/webhook
- * Multi-tenant: identifica o dono pelo metadata.phone_number_id
- */
+export async function disconnectWhatsApp(req, res) {
+  try {
+    const userId = req.userId;
+
+    await prisma.usuario.update({
+      where: { id: userId },
+      data: {
+        wa_status: "not_connected",
+        wa_waba_id: null,
+        wa_phone_number_id: null,
+        wa_display_phone_number: null,
+        wa_access_token: null,
+        wa_template_name: null,
+        wa_template_language: "pt_BR",
+        wa_connected_at: null,
+        wa_last_error: null,
+      },
+    });
+
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error("disconnectWhatsApp error:", err);
+    return res.status(500).json({ error: "Erro ao desconectar WhatsApp." });
+  }
+}
+
 export async function webhookHandler(req, res) {
   try {
     const entry = req.body?.entry?.[0];
@@ -122,8 +236,6 @@ export async function webhookHandler(req, res) {
 
     if (!user) return res.sendStatus(200);
 
-    // Aqui você processa mensagens / cliques por TENANT (user.id)
-    // value.messages, value.statuses, etc.
     console.log("📩 webhook tenant userId:", user.id);
 
     return res.sendStatus(200);
