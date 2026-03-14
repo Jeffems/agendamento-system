@@ -45,7 +45,9 @@ export async function getMyWhatsApp(req, res) {
     return res.json({ ok: true, whatsapp: user });
   } catch (err) {
     console.error("getMyWhatsApp error:", err);
-    return res.status(500).json({ error: "Erro ao buscar status do WhatsApp." });
+    return res
+      .status(500)
+      .json({ error: "Erro ao buscar status do WhatsApp." });
   }
 }
 
@@ -157,10 +159,26 @@ export async function sendTest(req, res) {
         {
           type: "body",
           parameters: [
-            { type: "text", text: "Cliente Teste" },
-            { type: "text", text: "Serviço Teste" },
-            { type: "text", text: "10/03/2026" },
-            { type: "text", text: "14:00" },
+            {
+              type: "text",
+              parameter_name: "nome",
+              text: "Cliente Teste",
+            },
+            {
+              type: "text",
+              parameter_name: "servico",
+              text: "Serviço Teste",
+            },
+            {
+              type: "text",
+              parameter_name: "dia",
+              text: "10/03/2026",
+            },
+            {
+              type: "text",
+              parameter_name: "horas",
+              text: "14:00",
+            },
           ],
         },
       ],
@@ -182,7 +200,9 @@ export async function sendTest(req, res) {
       await prisma.usuario.update({
         where: { id: req.userId },
         data: {
-          wa_last_error: JSON.stringify(err?.response?.data || err?.message || err),
+          wa_last_error: JSON.stringify(
+            err?.response?.data || err?.message || err
+          ),
         },
       });
     } catch {}
