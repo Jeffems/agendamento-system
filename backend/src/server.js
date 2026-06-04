@@ -42,12 +42,14 @@ app.listen(PORT, () => {
 });
 */}
 
+import dotenv from "dotenv";
+dotenv.config();
+
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
-import passport from "passport";
+// import passport from "passport";
 
-import "./auth/passport.js";
+// import "./auth/passport.js";
 import agendamentoRoutes from "./routes/agendamentoRoutes.js";
 import authRoutes from "./auth/authRoutes.js";
 import whatsappRoutes from "./routes/whatsappRoutes.js";
@@ -57,7 +59,7 @@ import { iniciarCronLembretes } from "./services/lembreteService.js";
 //import { executarLembretesAgora } from "./services/lembreteService.js";
 //executarLembretesAgora();
 
-dotenv.config();
+//dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -84,7 +86,7 @@ app.use(
 );
 
 app.use(express.json({ limit: "1mb" }));
-app.use(passport.initialize());
+// app.use(passport.initialize());
 
 app.get("/health", (req, res) => {
   res.json({

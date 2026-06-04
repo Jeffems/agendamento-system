@@ -5,7 +5,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Register from "./pages/Register";
 import App from "./App";
 import Login from "./pages/Login";
-import AuthCallback from "./pages/AuthCallback.jsx";
 import PrivateRoute from "./components/PrivateRoute";
 import WhatsappSettings from "./pages/WhatsappSettings.jsx";
 
@@ -18,8 +17,6 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         {/* Rotas públicas */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/auth/callback" element={<AuthCallback />} />
-
         {/* Rotas protegidas */}
         <Route element={<PrivateRoute />}>
           <Route path="/" element={<App />} />
