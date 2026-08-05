@@ -15,58 +15,58 @@ enum StatusAgendamento {
 }
 
 model Usuario {
-  id                      String   @id @default(uuid())
-  google_id               String?  @unique
-  nome                    String?
-  email                   String   @unique
-  avatar                  String?
-  password_hash           String?
+  id            String  @id @default(uuid())
+  google_id     String? @unique
+  nome          String?
+  email         String  @unique
+  avatar        String?
+  password_hash String?
 
-  termos_aceitos_em       DateTime?
-  termos_versao           String?
-  privacidade_aceita_em   DateTime?
-  privacidade_versao      String?
-  marketing_aceito        Boolean  @default(false)
-  marketing_aceito_em     DateTime?
+  termos_aceitos_em     DateTime?
+  termos_versao         String?
+  privacidade_aceita_em DateTime?
+  privacidade_versao    String?
+  marketing_aceito      Boolean   @default(false)
+  marketing_aceito_em   DateTime?
 
-  created_at              DateTime @default(now()) @db.Timestamptz(6)
-  updated_at              DateTime @updatedAt @db.Timestamptz(6)
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @updatedAt @db.Timestamptz(6)
 
-  wa_status               String   @default("not_connected")
+  wa_status               String    @default("not_connected")
   wa_waba_id              String?
-  wa_phone_number_id      String?  @unique
+  wa_phone_number_id      String?   @unique
   wa_display_phone_number String?
   wa_access_token         String?
   wa_template_name        String?
-  wa_template_language    String?  @default("pt_BR")
+  wa_template_language    String?   @default("pt_BR")
   wa_connected_at         DateTime?
   wa_last_error           String?
 
-  agendamentos            Agendamento[]
-  clientes                Clientes[]
+  agendamentos Agendamento[]
+  clientes     Cliente[]
 
   @@map("usuarios")
 }
 
 model Agendamento {
-  id                         String             @id @default(uuid())
-  nome                       String
-  sobrenome                  String
-  email                      String?
-  contato                    String?
-  servico                    String
-  data_agendamento           DateTime           @db.Timestamptz(6)
-  duracao_min                Int                @default(60)
-  status                     StatusAgendamento  @default(pendente)
-  lembrete_enviado           Boolean            @default(false)
-  lembrete_email_enviado     Boolean            @default(false)
-  lembrete_whatsapp_enviado  Boolean            @default(false)
-  observacoes                String?
-  created_at                 DateTime           @default(now()) @db.Timestamptz(6)
-  updated_at                 DateTime           @updatedAt @db.Timestamptz(6)
+  id                        String            @id @default(uuid())
+  nome                      String
+  sobrenome                 String
+  email                     String?
+  contato                   String?
+  servico                   String
+  data_agendamento          DateTime          @db.Timestamptz(6)
+  duracao_min               Int               @default(60)
+  status                    StatusAgendamento @default(pendente)
+  lembrete_enviado          Boolean           @default(false)
+  lembrete_email_enviado    Boolean           @default(false)
+  lembrete_whatsapp_enviado Boolean           @default(false)
+  observacoes               String?
+  created_at                DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at                DateTime          @updatedAt @db.Timestamptz(6)
 
-  usuarioId                  String?
-  usuario                    Usuario?           @relation(fields: [usuarioId], references: [id])
+  usuarioId String?
+  usuario   Usuario? @relation(fields: [usuarioId], references: [id])
   clienteId String?
   cliente   Cliente? @relation(fields: [clienteId], references: [id])
 
@@ -77,29 +77,28 @@ model Agendamento {
 }
 
 model Invite {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   email     String
-  token     String   @unique
+  token     String    @unique
   expiresAt DateTime
   usedAt    DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
   role      String?
 }
 
 model Cliente {
-  id          String   @id @default(uuid())
-  usuarioId  String
-
+  id          String  @id @default(uuid())
+  usuarioId   String
   nome        String
   sobrenome   String?
   email       String?
   contato     String?
   observacoes String?
 
-  created_at  DateTime @default(now()) @db.Timestamptz(6)
-  updated_at  DateTime @updatedAt @db.Timestamptz(6)
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @updatedAt @db.Timestamptz(6)
 
-  usuario     Usuario @relation(fields: [usuarioId], references: [id])
+  usuario      Usuario       @relation(fields: [usuarioId], references: [id])
   agendamentos Agendamento[]
 
   @@index([usuarioId])
