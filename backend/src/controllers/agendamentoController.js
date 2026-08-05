@@ -1,6 +1,43 @@
 import { addMinutes, isValid } from "date-fns";
 import prisma from "../lib/prisma.js";
-import { agendamentoSchema } from "../validators/agendamentoSchemas.js";
+import {
+  agendamentoSchema,
+  atualizarAgendamentoSchema,
+} from "../validators/agendamentoSchemas.js";
+
+function normalizeAtualizacaoPayload(body) {
+  const parsed = atualizarAgendamentoSchema.safeParse(body);
+
+  if (!parsed.success) {
+    return {
+      success: false,
+      error: parsed.error.flatten(),
+    };
+  }
+
+  const data = { ...parsed.data };
+
+  if (data.data_agendamento) {
+    const dataConvertida = new Date(data.data_agendamento);
+
+    if (!isValid(dataConvertida)) {
+      return {
+        success: false,
+        error: {
+          formErrors: ["data_agendamento inválida"],
+          fieldErrors: {},
+        },
+      };
+    }
+
+    data.data_agendamento = dataConvertida;
+  }
+
+  return {
+    success: true,
+    data,
+  };
+}
 
 function normalizeAgendamentoPayload(body) {
   const parsed = agendamentoSchema.safeParse(body);
@@ -181,7 +218,7 @@ export const atualizarAgendamento = async (req, res) => {
       return res.status(404).json({ error: "Agendamento não encontrado" });
     }
 
-    const normalized = normalizeAgendamentoPayload(req.body);
+    const normalized = normalizeAtualizacaoPayload(req.body);
 
     if (!normalized.success) {
       return res.status(400).json({
@@ -190,34 +227,43 @@ export const atualizarAgendamento = async (req, res) => {
       });
     }
 
-    const conflito = await checkHorarioConflitante({
-      usuarioId,
-      dataAgendamento: normalized.data.data_agendamento,
-      duracaoMin: normalized.data.duracao_min,
-      ignoreId: id,
-    });
+    const dadosAtualizados = normalized.data;
 
-    if (conflito) {
-      return res.status(409).json({
-        error: "Já existe um agendamento nesse horário",
-        conflict: {
-          id: conflito.id,
-          nome: conflito.nome,
-          sobrenome: conflito.sobrenome,
-          data_agendamento: conflito.data_agendamento,
-          duracao_min: conflito.duracao_min,
-        },
+    const novaData =
+      dadosAtualizados.data_agendamento ?? existente.data_agendamento;
+
+    const novaDuracao =
+      dadosAtualizados.duracao_min ?? existente.duracao_min ?? 60;
+
+    const deveValidarConflito =
+      dadosAtualizados.data_agendamento !== undefined ||
+      dadosAtualizados.duracao_min !== undefined;
+
+    if (deveValidarConflito) {
+      const conflito = await checkHorarioConflitante({
+        usuarioId,
+        dataAgendamento: new Date(novaData),
+        duracaoMin: novaDuracao,
+        ignoreId: id,
       });
+
+      if (conflito) {
+        return res.status(409).json({
+          error: "Já existe um agendamento nesse horário",
+          conflict: {
+            id: conflito.id,
+            nome: conflito.nome,
+            sobrenome: conflito.sobrenome,
+            data_agendamento: conflito.data_agendamento,
+            duracao_min: conflito.duracao_min,
+          },
+        });
+      }
     }
 
     const agendamentoAtualizado = await prisma.agendamento.update({
       where: { id },
-      data: {
-        ...normalized.data,
-        ...(typeof req.body.lembrete_enviado === "boolean"
-          ? { lembrete_enviado: req.body.lembrete_enviado }
-          : {}),
-      },
+      data: dadosAtualizados,
     });
 
     return res.json(agendamentoAtualizado);

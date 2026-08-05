@@ -39,3 +39,5 @@ export const agendamentoSchema = z.object({
     .transform((value) => value || null),
   lembrete_enviado: z.boolean().optional(),
 });
+
+export const atualizarAgendamentoSchema = agendamentoSchema.partial();
