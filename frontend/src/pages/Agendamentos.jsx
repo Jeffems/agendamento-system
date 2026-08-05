@@ -18,6 +18,7 @@ import {
   List,
   Calendar,
   Settings,
+  Users,
 } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import { agendamentosAPI } from "../services/api";
@@ -316,6 +317,14 @@ export default function Agendamentos() {
                 Sair
               </button>
              
+              <button
+                onClick={() => navigate("/clientes")}
+                className="bg-white border border-slate-200 text-slate-900 px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-slate-50 transition-colors"
+              >
+                <Users className="w-5 h-5" />
+                Clientes
+              </button>
+
               <button
                 onClick={() => navigate("/settings/whatsapp")}
                 className="bg-white border border-slate-200 text-slate-900 px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-slate-50 transition-colors"

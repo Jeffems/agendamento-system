@@ -7,6 +7,7 @@ import App from "./App";
 import Login from "./pages/Login";
 import PrivateRoute from "./components/PrivateRoute";
 import WhatsappSettings from "./pages/WhatsappSettings.jsx";
+import Clientes from "./pages/Clientes.jsx";
 
 import "./index.css";
 
@@ -20,6 +21,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         {/* Rotas protegidas */}
         <Route element={<PrivateRoute />}>
           <Route path="/" element={<App />} />
+          <Route path="/clientes" element={<Clientes />} />
           <Route path="/settings/whatsapp" element={<WhatsappSettings />} />
         </Route>
       </Routes>

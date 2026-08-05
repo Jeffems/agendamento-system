@@ -54,3 +54,10 @@ export const whatsappAPI = {
 };
 
 export default api;
+export const clientesAPI = {
+  listar: () => api.get("/api/clientes"),
+  obter: (id) => api.get(`/api/clientes/${id}`),
+  criar: (dados) => api.post("/api/clientes", dados),
+  atualizar: (id, dados) => api.put(`/api/clientes/${id}`, dados),
+  deletar: (id) => api.delete(`/api/clientes/${id}`),
+};
