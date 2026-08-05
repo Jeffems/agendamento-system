@@ -128,26 +128,40 @@ export default function Agendamentos() {
   const handleMudarStatus = async (agendamento, novoStatus) => {
     try {
       await agendamentosAPI.atualizar(agendamento.id, {
-        ...agendamento,
         status: novoStatus,
       });
+  
       toast.success("Status atualizado!");
       await carregarAgendamentos();
     } catch (error) {
-      toast.error("Erro ao atualizar status");
+      console.error(
+        "Erro ao atualizar status:",
+        error?.response?.data || error
+      );
+  
+      toast.error(
+        error?.response?.data?.error || "Erro ao atualizar status"
+      );
     }
   };
 
   const handleEnviarLembrete = async (agendamento) => {
     try {
       await agendamentosAPI.atualizar(agendamento.id, {
-        ...agendamento,
         lembrete_enviado: true,
       });
+  
       toast.success("Lembrete enviado com sucesso!");
       await carregarAgendamentos();
     } catch (error) {
-      toast.error("Erro ao enviar lembrete");
+      console.error(
+        "Erro ao enviar lembrete:",
+        error?.response?.data || error
+      );
+  
+      toast.error(
+        error?.response?.data?.error || "Erro ao enviar lembrete"
+      );
     }
   };
 
