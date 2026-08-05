@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Calendar,
   Clock,
@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { clientesAPI } from "../services/api";
 
 function isoToLocalString(iso) {
   if (!iso) return "";
@@ -32,6 +33,7 @@ export default function FormularioAgendamento({
   const [dados, setDados] = useState(() => {
     if (!agendamento) {
       return {
+        clienteId: null,
         nome: "",
         sobrenome: "",
         email: "",
@@ -46,6 +48,7 @@ export default function FormularioAgendamento({
 
     return {
       ...agendamento,
+      clienteId: agendamento.clienteId || agendamento.cliente?.id || null,
       email: agendamento.email || "",
       contato: agendamento.contato || "",
       duracao_min: agendamento.duracao_min || 60,
@@ -53,8 +56,54 @@ export default function FormularioAgendamento({
     };
   });
 
+  const [clientes, setClientes] = useState([]);
+  const [carregandoClientes, setCarregandoClientes] = useState(true);
+
+  useEffect(() => {
+    async function carregarClientes() {
+      try {
+        setCarregandoClientes(true);
+        const response = await clientesAPI.listar();
+        setClientes(response.data || []);
+      } catch (error) {
+        console.error("Erro ao carregar clientes:", error);
+        toast.error("Não foi possível carregar os clientes cadastrados.");
+      } finally {
+        setCarregandoClientes(false);
+      }
+    }
+
+    carregarClientes();
+  }, []);
+
   const handleChange = (field, value) => {
     setDados((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSelecionarCliente = (clienteId) => {
+    if (!clienteId) {
+      setDados((prev) => ({
+        ...prev,
+        clienteId: null,
+        nome: "",
+        sobrenome: "",
+        email: "",
+        contato: "",
+      }));
+      return;
+    }
+
+    const cliente = clientes.find((item) => item.id === clienteId);
+    if (!cliente) return;
+
+    setDados((prev) => ({
+      ...prev,
+      clienteId: cliente.id,
+      nome: cliente.nome || "",
+      sobrenome: cliente.sobrenome || "",
+      email: cliente.email || "",
+      contato: cliente.contato || "",
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -70,6 +119,7 @@ export default function FormularioAgendamento({
     try {
       await onSalvar({
         ...dados,
+        clienteId: dados.clienteId || null,
         duracao_min: Number(dados.duracao_min),
         data_agendamento: dt.toISOString(),
       });
@@ -102,6 +152,37 @@ export default function FormularioAgendamento({
 
       <form onSubmit={handleSubmit} className="p-8">
         <div className="space-y-6">
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-slate-700 font-medium text-sm">
+              <User className="w-4 h-4 text-slate-500" />
+              Cliente cadastrado
+            </label>
+
+            <select
+              value={dados.clienteId || ""}
+              onChange={(e) => handleSelecionarCliente(e.target.value)}
+              disabled={carregandoClientes}
+              className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-white focus:border-slate-900 focus:ring-2 focus:ring-slate-900/20 outline-none transition-all disabled:bg-slate-100"
+            >
+              <option value="">
+                {carregandoClientes
+                  ? "Carregando clientes..."
+                  : "Preencher os dados manualmente"}
+              </option>
+
+              {clientes.map((cliente) => (
+                <option key={cliente.id} value={cliente.id}>
+                  {[cliente.nome, cliente.sobrenome].filter(Boolean).join(" ")}
+                  {cliente.contato ? ` — ${cliente.contato}` : ""}
+                </option>
+              ))}
+            </select>
+
+            <p className="text-xs text-slate-500">
+              Selecione um cliente para preencher nome, e-mail e WhatsApp automaticamente.
+            </p>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <label className="flex items-center gap-2 text-slate-700 font-medium text-sm">

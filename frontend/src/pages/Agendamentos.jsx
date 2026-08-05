@@ -23,7 +23,7 @@ import {
 import { AnimatePresence } from "framer-motion";
 import { agendamentosAPI } from "../services/api";
 import { logout } from "../components/logout";
-
+import { clientesAPI } from "../services/api";
 import FormularioAgendamento from "../components/FormularioAgendamento";
 import CardAgendamento from "../components/CardAgendamento";
 import FiltrosAgendamento from "../components/FiltrosAgendamento";
@@ -47,6 +47,7 @@ export default function Agendamentos() {
     periodo: "todos",
   });
 
+
   // Visualização (cards | lista | calendario)
   const [visualizacao, setVisualizacao] = useState("cards");
 
@@ -58,6 +59,8 @@ export default function Agendamentos() {
   // Calendário: modal de detalhes (não editar direto)
   const [agendamentoSelecionado, setAgendamentoSelecionado] = useState(null);
   const [mostrarDetalhes, setMostrarDetalhes] = useState(false);
+ 
+
 
   useEffect(() => {
     carregarAgendamentos();
