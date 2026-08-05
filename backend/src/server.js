@@ -11,6 +11,7 @@ import agendamentoRoutes from "./routes/agendamentoRoutes.js";
 import authRoutes from "./auth/authRoutes.js";
 import whatsappRoutes from "./routes/whatsappRoutes.js";
 import inviteRoutes from "./routes/inviteRoutes.js";
+import clienteRoutes from "./routes/clienteRoutes.js";
 
 import { iniciarCronLembretes } from "./services/lembreteService.js";
 //import { executarLembretesAgora } from "./services/lembreteService.js";
@@ -26,6 +27,7 @@ const allowedOrigins = [
   "http://localhost:3000",
   process.env.FRONTEND_URL,
 ].filter(Boolean);
+
 
 app.use(
   cors({
@@ -58,7 +60,7 @@ app.use("/invite", inviteRoutes);
 app.use("/auth", authRoutes);
 app.use("/api/agendamentos", agendamentoRoutes);
 app.use("/whatsapp", whatsappRoutes);
-
+app.use("/api/clientes", clienteRoutes);
 app.use((err, req, res, next) => {
   console.error("Erro não tratado:", err);
 

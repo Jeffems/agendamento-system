@@ -43,6 +43,7 @@ model Usuario {
   wa_last_error           String?
 
   agendamentos            Agendamento[]
+  clientes                Clientes[]
 
   @@map("usuarios")
 }
@@ -66,6 +67,8 @@ model Agendamento {
 
   usuarioId                  String?
   usuario                    Usuario?           @relation(fields: [usuarioId], references: [id])
+  clienteId String?
+  cliente   Cliente? @relation(fields: [clienteId], references: [id])
 
   @@index([usuarioId])
   @@index([data_agendamento])
@@ -81,4 +84,25 @@ model Invite {
   usedAt    DateTime?
   createdAt DateTime @default(now())
   role      String?
+}
+
+model Cliente {
+  id          String   @id @default(uuid())
+  usuarioId  String
+
+  nome        String
+  sobrenome   String?
+  email       String?
+  contato     String?
+  observacoes String?
+
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime @updatedAt @db.Timestamptz(6)
+
+  usuario     Usuario @relation(fields: [usuarioId], references: [id])
+  agendamentos Agendamento[]
+
+  @@index([usuarioId])
+  @@index([usuarioId, nome])
+  @@map("clientes")
 }
