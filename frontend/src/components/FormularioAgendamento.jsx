@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Calendar,
   Clock,
@@ -58,6 +58,12 @@ export default function FormularioAgendamento({
 
   const [clientes, setClientes] = useState([]);
   const [carregandoClientes, setCarregandoClientes] = useState(true);
+  const [buscaCliente, setBuscaCliente] = useState(() => {
+    if (!agendamento) return "";
+    return [agendamento.nome, agendamento.sobrenome].filter(Boolean).join(" ");
+  });
+  const [autocompleteAberto, setAutocompleteAberto] = useState(false);
+  const autocompleteRef = useRef(null);
 
   useEffect(() => {
     async function carregarClientes() {
@@ -76,12 +82,50 @@ export default function FormularioAgendamento({
     carregarClientes();
   }, []);
 
+  useEffect(() => {
+    function fecharAoClicarFora(event) {
+      if (
+        autocompleteRef.current &&
+        !autocompleteRef.current.contains(event.target)
+      ) {
+        setAutocompleteAberto(false);
+      }
+    }
+
+    document.addEventListener("mousedown", fecharAoClicarFora);
+    return () => document.removeEventListener("mousedown", fecharAoClicarFora);
+  }, []);
+
+  const clientesFiltrados = useMemo(() => {
+    const termo = buscaCliente.trim().toLowerCase();
+
+    if (!termo) return clientes.slice(0, 8);
+
+    return clientes
+      .filter((cliente) => {
+        const nomeCompleto = [cliente.nome, cliente.sobrenome]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+
+        const contato = String(cliente.contato || "").toLowerCase();
+        const email = String(cliente.email || "").toLowerCase();
+
+        return (
+          nomeCompleto.includes(termo) ||
+          contato.includes(termo) ||
+          email.includes(termo)
+        );
+      })
+      .slice(0, 8);
+  }, [clientes, buscaCliente]);
+
   const handleChange = (field, value) => {
     setDados((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSelecionarCliente = (clienteId) => {
-    if (!clienteId) {
+  const handleSelecionarCliente = (cliente) => {
+    if (!cliente) {
       setDados((prev) => ({
         ...prev,
         clienteId: null,
@@ -90,11 +134,10 @@ export default function FormularioAgendamento({
         email: "",
         contato: "",
       }));
+      setBuscaCliente("");
+      setAutocompleteAberto(false);
       return;
     }
-
-    const cliente = clientes.find((item) => item.id === clienteId);
-    if (!cliente) return;
 
     setDados((prev) => ({
       ...prev,
@@ -104,6 +147,11 @@ export default function FormularioAgendamento({
       email: cliente.email || "",
       contato: cliente.contato || "",
     }));
+
+    setBuscaCliente(
+      [cliente.nome, cliente.sobrenome].filter(Boolean).join(" ")
+    );
+    setAutocompleteAberto(false);
   };
 
   const handleSubmit = async (e) => {
@@ -152,34 +200,101 @@ export default function FormularioAgendamento({
 
       <form onSubmit={handleSubmit} className="p-8">
         <div className="space-y-6">
-          <div className="space-y-2">
+          <div className="space-y-2" ref={autocompleteRef}>
             <label className="flex items-center gap-2 text-slate-700 font-medium text-sm">
               <User className="w-4 h-4 text-slate-500" />
               Cliente cadastrado
             </label>
 
-            <select
-              value={dados.clienteId || ""}
-              onChange={(e) => handleSelecionarCliente(e.target.value)}
-              disabled={carregandoClientes}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-white focus:border-slate-900 focus:ring-2 focus:ring-slate-900/20 outline-none transition-all disabled:bg-slate-100"
-            >
-              <option value="">
-                {carregandoClientes
-                  ? "Carregando clientes..."
-                  : "Preencher os dados manualmente"}
-              </option>
+            <div className="relative">
+              <input
+                type="text"
+                value={buscaCliente}
+                onFocus={() => setAutocompleteAberto(true)}
+                onChange={(e) => {
+                  setBuscaCliente(e.target.value);
+                  setAutocompleteAberto(true);
 
-              {clientes.map((cliente) => (
-                <option key={cliente.id} value={cliente.id}>
-                  {[cliente.nome, cliente.sobrenome].filter(Boolean).join(" ")}
-                  {cliente.contato ? ` — ${cliente.contato}` : ""}
-                </option>
-              ))}
-            </select>
+                  if (dados.clienteId) {
+                    setDados((prev) => ({
+                      ...prev,
+                      clienteId: null,
+                    }));
+                  }
+                }}
+                placeholder={
+                  carregandoClientes
+                    ? "Carregando clientes..."
+                    : "Buscar por nome, telefone ou e-mail..."
+                }
+                disabled={carregandoClientes}
+                autoComplete="off"
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-white focus:border-slate-900 focus:ring-2 focus:ring-slate-900/20 outline-none transition-all disabled:bg-slate-100"
+              />
+
+              {autocompleteAberto && !carregandoClientes && (
+                <div className="absolute z-30 mt-2 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
+                  <button
+                    type="button"
+                    onClick={() => handleSelecionarCliente(null)}
+                    className="w-full border-b border-slate-100 px-4 py-3 text-left hover:bg-slate-50"
+                  >
+                    <div className="font-medium text-slate-900">
+                      Preencher os dados manualmente
+                    </div>
+                    <div className="text-xs text-slate-500">
+                      Não vincular este agendamento a um cliente cadastrado
+                    </div>
+                  </button>
+
+                  <div className="max-h-64 overflow-y-auto">
+                    {clientesFiltrados.length === 0 ? (
+                      <div className="px-4 py-4 text-sm text-slate-500">
+                        Nenhum cliente encontrado.
+                      </div>
+                    ) : (
+                      clientesFiltrados.map((cliente) => {
+                        const nomeCompleto = [
+                          cliente.nome,
+                          cliente.sobrenome,
+                        ]
+                          .filter(Boolean)
+                          .join(" ");
+
+                        return (
+                          <button
+                            key={cliente.id}
+                            type="button"
+                            onClick={() => handleSelecionarCliente(cliente)}
+                            className={[
+                              "w-full border-b border-slate-100 px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-slate-50",
+                              dados.clienteId === cliente.id
+                                ? "bg-slate-100"
+                                : "",
+                            ].join(" ")}
+                          >
+                            <div className="font-medium text-slate-900">
+                              {nomeCompleto}
+                            </div>
+
+                            {(cliente.contato || cliente.email) && (
+                              <div className="mt-1 text-sm text-slate-500">
+                                {[cliente.contato, cliente.email]
+                                  .filter(Boolean)
+                                  .join(" • ")}
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
 
             <p className="text-xs text-slate-500">
-              Selecione um cliente para preencher nome, e-mail e WhatsApp automaticamente.
+              Digite parte do nome, telefone ou e-mail e selecione o cliente.
             </p>
           </div>
 
