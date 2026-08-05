@@ -159,9 +159,7 @@ export default function ClienteAutocomplete({
       toast.success("Cliente cadastrado e selecionado.");
     } catch (error) {
       console.error("Erro ao cadastrar cliente:", error);
-      toast.error(
-        error?.response?.data?.error || "Erro ao cadastrar cliente."
-      );
+      toast.error(error?.response?.data?.error || "Erro ao cadastrar cliente.");
     } finally {
       setSalvando(false);
     }
@@ -223,7 +221,10 @@ export default function ClienteAutocomplete({
                     <button
                       key={cliente.id}
                       type="button"
-                      onClick={() => selecionar(cliente)}
+                      onMouseDown={(event) => {
+                        event.preventDefault();
+                        selecionar(cliente);
+                      }}
                       className={[
                         "w-full border-b border-slate-100 px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-slate-50",
                         value === cliente.id ? "bg-slate-100" : "",
@@ -264,7 +265,10 @@ export default function ClienteAutocomplete({
               <div className="border-t border-slate-200 bg-slate-50 p-2">
                 <button
                   type="button"
-                  onClick={abrirCadastroRapido}
+                  onMouseDown={(event) => {
+                    event.preventDefault();
+                    abrirCadastroRapido();
+                  }}
                   className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-semibold text-slate-900 hover:bg-white"
                 >
                   <Plus className="h-4 w-4" />
@@ -275,7 +279,10 @@ export default function ClienteAutocomplete({
 
                 <button
                   type="button"
-                  onClick={usarPreenchimentoManual}
+                  onMouseDown={(event) => {
+                    event.preventDefault();
+                    usarPreenchimentoManual();
+                  }}
                   className="mt-1 w-full rounded-lg px-3 py-2 text-left text-sm text-slate-600 hover:bg-white"
                 >
                   Preencher os dados manualmente
@@ -295,9 +302,7 @@ export default function ClienteAutocomplete({
           <div className="w-full max-w-xl overflow-hidden rounded-2xl bg-white shadow-2xl">
             <div className="flex items-center justify-between bg-slate-900 px-6 py-5">
               <div>
-                <h3 className="text-xl font-bold text-white">
-                  Novo cliente
-                </h3>
+                <h3 className="text-xl font-bold text-white">Novo cliente</h3>
                 <p className="mt-1 text-sm text-slate-300">
                   O cliente será selecionado automaticamente após salvar.
                 </p>
