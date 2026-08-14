@@ -502,12 +502,20 @@ export default function CardAgendamento({
             />
           </button>
 
-          {agendamento.lembrete_enviado && (
-            <div className="inline-flex items-center gap-2 text-[11px] text-slate-700 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200">
-              <MessageCircle className="w-4 h-4" />
-              <span className="font-semibold">Lembrete enviado</span>
-            </div>
-          )}
+          <div className="flex flex-wrap justify-end gap-2">
+            {agendamento.lembrete_email_enviado && (
+              <div className="inline-flex items-center gap-2 text-[11px] text-slate-700 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200">
+                <Mail className="w-4 h-4" />
+                <span className="font-semibold">E-mail enviado</span>
+              </div>
+            )}
+            {agendamento.lembrete_whatsapp_enviado && (
+              <div className="inline-flex items-center gap-2 text-[11px] text-slate-700 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200">
+                <MessageCircle className="w-4 h-4" />
+                <span className="font-semibold">WhatsApp enviado</span>
+              </div>
+            )}
+          </div>
         </div>
 
         {detalhesAberto && (

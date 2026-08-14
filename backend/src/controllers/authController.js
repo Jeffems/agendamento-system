@@ -21,7 +21,7 @@ function signToken(user) {
  */
 const registerSchema = z.object({
   nome: z.string().min(2).optional(),
-  email: z.string().email(),
+  email: z.string().trim().toLowerCase().email(),
   password: z.string().min(8),
   inviteToken: z.string().min(10), // ✅ obrigatório
   accept: z.object({
@@ -65,7 +65,9 @@ export async function register(req, res) {
   const now = new Date();
   const passwordHash = await bcrypt.hash(password, 12);
 
-  const existing = await prisma.usuario.findUnique({ where: { email } });
+  const existing = await prisma.usuario.findFirst({
+    where: { email: { equals: email, mode: "insensitive" } },
+  });
 
   let user;
   const created = !existing;
@@ -127,7 +129,7 @@ export async function register(req, res) {
 }
 
 const loginSchema = z.object({
-  email: z.string().email(),
+  email: z.string().trim().toLowerCase().email(),
   password: z.string().min(1),
 });
 
@@ -137,7 +139,9 @@ export async function login(req, res) {
 
   const { email, password } = parsed.data;
 
-  const user = await prisma.usuario.findUnique({ where: { email } });
+  const user = await prisma.usuario.findFirst({
+    where: { email: { equals: email, mode: "insensitive" } },
+  });
 
   if (!user) return res.status(401).json({ error: "Email ou senha inválidos" });
 

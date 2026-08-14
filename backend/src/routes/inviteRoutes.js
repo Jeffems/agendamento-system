@@ -7,6 +7,17 @@ const router = express.Router();
 
 router.post("/create", authMiddleware, async (req, res) => {
   try {
+    const administradores = String(process.env.ADMIN_EMAILS || "")
+      .split(",")
+      .map((item) => item.trim().toLowerCase())
+      .filter(Boolean);
+
+    if (!administradores.includes(String(req.user.email || "").toLowerCase())) {
+      return res.status(403).json({
+        error: "Apenas administradores podem criar convites",
+      });
+    }
+
     const email = String(req.body?.email || "")
       .trim()
       .toLowerCase();

@@ -4,7 +4,8 @@ import {
   obterAgendamento,
   criarAgendamento,
   atualizarAgendamento,
-  deletarAgendamento
+  deletarAgendamento,
+  enviarLembreteEmailManual,
 } from '../controllers/agendamentoController.js';
 import { authMiddleware } from "../middlewares/authMiddleware.js";
 
@@ -13,6 +14,11 @@ router.get("/:id", authMiddleware, obterAgendamento);
 router.post("/", authMiddleware, criarAgendamento);
 router.put("/:id", authMiddleware, atualizarAgendamento);
 router.delete("/:id", authMiddleware, deletarAgendamento);
+router.post(
+  "/:id/lembretes/email",
+  authMiddleware,
+  enviarLembreteEmailManual
+);
 const router = express.Router();
 
 router.get('/', listarAgendamentos);

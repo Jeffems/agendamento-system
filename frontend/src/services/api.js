@@ -44,6 +44,8 @@ export const agendamentosAPI = {
   criar: (dados) => api.post("/api/agendamentos", dados),
   atualizar: (id, dados) => api.put(`/api/agendamentos/${id}`, dados),
   deletar: (id) => api.delete(`/api/agendamentos/${id}`),
+  enviarLembreteEmail: (id) =>
+    api.post(`/api/agendamentos/${id}/lembretes/email`),
 };
 
 export const whatsappAPI = {

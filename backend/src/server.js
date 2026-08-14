@@ -4,6 +4,8 @@ dotenv.config();
 
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
+import { rateLimit } from "express-rate-limit";
 // import passport from "passport";
 
 // import "./auth/passport.js";
@@ -12,6 +14,7 @@ import authRoutes from "./auth/authRoutes.js";
 import whatsappRoutes from "./routes/whatsappRoutes.js";
 import inviteRoutes from "./routes/inviteRoutes.js";
 import clienteRoutes from "./routes/clienteRoutes.js";
+import prisma from "./lib/prisma.js";
 
 import { iniciarCronLembretes } from "./services/lembreteService.js";
 //import { executarLembretesAgora } from "./services/lembreteService.js";
@@ -22,6 +25,24 @@ import { iniciarCronLembretes } from "./services/lembreteService.js";
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+const variaveisObrigatorias = ["DATABASE_URL", "JWT_SECRET"];
+const variaveisAusentes = variaveisObrigatorias.filter(
+  (nome) => !process.env[nome]
+);
+
+if (variaveisAusentes.length > 0) {
+  throw new Error(
+    `Variáveis de ambiente obrigatórias ausentes: ${variaveisAusentes.join(", ")}`
+  );
+}
+
+if (
+  process.env.NODE_ENV === "production" &&
+  String(process.env.JWT_SECRET).length < 32
+) {
+  throw new Error("JWT_SECRET deve possuir pelo menos 32 caracteres em produção");
+}
+
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:3000",
@@ -29,6 +50,8 @@ const allowedOrigins = [
 ].filter(Boolean);
 
 
+app.set("trust proxy", 1);
+app.use(helmet());
 app.use(
   cors({
     origin(origin, callback) {
@@ -44,23 +67,60 @@ app.use(
   })
 );
 
-app.use(express.json({ limit: "1mb" }));
+app.use(
+  express.json({
+    limit: "1mb",
+    verify(req, res, buffer) {
+      if (req.originalUrl === "/whatsapp/webhook") {
+        req.rawBody = Buffer.from(buffer);
+      }
+    },
+  })
+);
 // app.use(passport.initialize());
 
-app.get("/health", (req, res) => {
-  res.json({
-    status: "ok",
-    message: "Servidor rodando!",
-    env: process.env.NODE_ENV || "development",
-    timezone: process.env.APP_TIMEZONE || "America/Cuiaba",
-  });
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 300,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: { error: "Muitas solicitações. Tente novamente em alguns minutos." },
 });
 
-app.use("/invite", inviteRoutes);
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 15,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: { error: "Muitas tentativas. Aguarde alguns minutos e tente novamente." },
+});
+
+app.get("/health", async (req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+
+    return res.json({
+      status: "ok",
+      database: "connected",
+      env: process.env.NODE_ENV || "development",
+      timezone: process.env.APP_TIMEZONE || "America/Cuiaba",
+    });
+  } catch (error) {
+    console.error("Falha no health check:", error?.message || error);
+    return res.status(503).json({
+      status: "error",
+      database: "unavailable",
+    });
+  }
+});
+
+app.use("/auth/login", authLimiter);
+app.use("/auth/register", authLimiter);
+app.use("/invite", apiLimiter, inviteRoutes);
 app.use("/auth", authRoutes);
-app.use("/api/agendamentos", agendamentoRoutes);
+app.use("/api/agendamentos", apiLimiter, agendamentoRoutes);
 app.use("/whatsapp", whatsappRoutes);
-app.use("/api/clientes", clienteRoutes);
+app.use("/api/clientes", apiLimiter, clienteRoutes);
 app.use((err, req, res, next) => {
   console.error("Erro não tratado:", err);
 
@@ -71,7 +131,7 @@ app.use((err, req, res, next) => {
   return res.status(500).json({ error: "Erro interno do servidor" });
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
   console.log(`🌍 FRONTEND_URL: ${process.env.FRONTEND_URL || "não definida"}`);
   console.log(`🕒 APP_TIMEZONE: ${process.env.APP_TIMEZONE || "America/Cuiaba"}`);
@@ -80,3 +140,17 @@ app.listen(PORT, () => {
 if (process.env.ENABLE_REMINDER_CRON !== "false") {
   iniciarCronLembretes();
 }
+
+async function encerrarServidor(sinal) {
+  console.log(`Recebido ${sinal}. Encerrando servidor...`);
+
+  server.close(async () => {
+    await prisma.$disconnect();
+    process.exit(0);
+  });
+
+  setTimeout(() => process.exit(1), 10000).unref();
+}
+
+process.once("SIGTERM", () => encerrarServidor("SIGTERM"));
+process.once("SIGINT", () => encerrarServidor("SIGINT"));

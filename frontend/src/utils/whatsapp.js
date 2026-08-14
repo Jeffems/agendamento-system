@@ -2,6 +2,22 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 export function buildWhatsAppReminderLink({ agendamento }) {
+  let telefone = String(agendamento.contato || "").replace(/\D/g, "");
+
+  telefone = telefone.replace(/^0+/, "");
+
+  if (!telefone) {
+    throw new Error("Agendamento sem telefone cadastrado");
+  }
+
+  if (!telefone.startsWith("55")) {
+    telefone = `55${telefone}`;
+  }
+
+  if (telefone.length < 12 || telefone.length > 13) {
+    throw new Error("Telefone inválido para WhatsApp");
+  }
+
   const dateObj = new Date(agendamento.data_agendamento);
 
   const data = format(dateObj, "dd/MM/yyyy", { locale: ptBR });
@@ -16,7 +32,7 @@ export function buildWhatsAppReminderLink({ agendamento }) {
     (agendamento.observacoes ? ` Obs.: ${agendamento.observacoes}\n` : "") +
     `\nSe precisar reagendar, me avise por aqui. `;
 
-  return `https://wa.me/?text=${encodeURIComponent(msg)}`;
+  return `https://wa.me/${telefone}?text=${encodeURIComponent(msg)}`;
 }
 
 export function openWhatsApp(url) {

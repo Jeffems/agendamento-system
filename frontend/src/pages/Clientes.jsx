@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast, Toaster } from "sonner";
+import { toast } from "sonner";
 import {
   ArrowLeft,
   Edit3,
@@ -160,8 +160,6 @@ export default function Clientes() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <Toaster position="top-right" richColors />
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
           <div>

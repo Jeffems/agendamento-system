@@ -147,9 +147,7 @@ export default function Agendamentos() {
 
   const handleEnviarLembrete = async (agendamento) => {
     try {
-      await agendamentosAPI.atualizar(agendamento.id, {
-        lembrete_enviado: true,
-      });
+      await agendamentosAPI.enviarLembreteEmail(agendamento.id);
   
       toast.success("Lembrete enviado com sucesso!");
       await carregarAgendamentos();

@@ -1,5 +1,5 @@
 import React from "react";
-import { MoreVertical, MessageCircle } from "lucide-react";
+import { Mail, MoreVertical, MessageCircle } from "lucide-react";
 import { formatInTimeZone } from "date-fns-tz";
 import { ptBR } from "date-fns/locale";
 import { StatusBadge } from "./StatusBadge";
@@ -54,12 +54,20 @@ export default function AgendamentosListView({
                       {a.nome} {a.sobrenome}
                     </div>
 
-                    {a.lembrete_enviado && (
-                      <div className="mt-1 inline-flex items-center gap-1 text-[11px] text-slate-600">
-                        <MessageCircle className="w-3.5 h-3.5" />
-                        Lembrete enviado
-                      </div>
-                    )}
+                    <div className="mt-1 flex flex-wrap gap-2 text-[11px] text-slate-600">
+                      {a.lembrete_email_enviado && (
+                        <span className="inline-flex items-center gap-1">
+                          <Mail className="w-3.5 h-3.5" />
+                          E-mail enviado
+                        </span>
+                      )}
+                      {a.lembrete_whatsapp_enviado && (
+                        <span className="inline-flex items-center gap-1">
+                          <MessageCircle className="w-3.5 h-3.5" />
+                          WhatsApp enviado
+                        </span>
+                      )}
+                    </div>
                   </td>
 
                   <td className="px-4 py-3 text-sm text-slate-700 font-semibold">{a.servico}</td>

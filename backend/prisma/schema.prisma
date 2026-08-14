@@ -49,21 +49,23 @@ model Usuario {
 }
 
 model Agendamento {
-  id                        String            @id @default(uuid())
-  nome                      String
-  sobrenome                 String
-  email                     String?
-  contato                   String?
-  servico                   String
-  data_agendamento          DateTime          @db.Timestamptz(6)
-  duracao_min               Int               @default(60)
-  status                    StatusAgendamento @default(pendente)
-  lembrete_enviado          Boolean           @default(false)
-  lembrete_email_enviado    Boolean           @default(false)
-  lembrete_whatsapp_enviado Boolean           @default(false)
-  observacoes               String?
-  created_at                DateTime          @default(now()) @db.Timestamptz(6)
-  updated_at                DateTime          @updatedAt @db.Timestamptz(6)
+  id                               String            @id @default(uuid())
+  nome                             String
+  sobrenome                        String
+  email                            String?
+  contato                          String?
+  servico                          String
+  data_agendamento                 DateTime          @db.Timestamptz(6)
+  duracao_min                      Int               @default(60)
+  status                           StatusAgendamento @default(pendente)
+  lembrete_enviado                 Boolean           @default(false)
+  lembrete_email_enviado           Boolean           @default(false)
+  lembrete_whatsapp_enviado        Boolean           @default(false)
+  lembrete_email_processando_em    DateTime?         @db.Timestamptz(6)
+  lembrete_whatsapp_processando_em DateTime?         @db.Timestamptz(6)
+  observacoes                      String?
+  created_at                       DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at                       DateTime          @updatedAt @db.Timestamptz(6)
 
   usuarioId String?
   usuario   Usuario? @relation(fields: [usuarioId], references: [id])

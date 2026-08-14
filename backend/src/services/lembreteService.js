@@ -7,13 +7,29 @@ import { sendTemplate } from "./whatsappService.js";
 import { decrypt } from "../utils/crypto.js";
 
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 const TZ = process.env.APP_TIMEZONE || "America/Cuiaba";
+let lembretesEmExecucao = false;
 
 
 function getFromEmail() {
   return process.env.EMAIL_FROM || "onboarding@resend.dev";
+}
+
+function getResendClient() {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error("RESEND_API_KEY não configurada");
+  }
+
+  return new Resend(process.env.RESEND_API_KEY);
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
 function normalizarTelefoneBR(numero) {
@@ -39,11 +55,7 @@ function normalizarTelefoneBR(numero) {
   return digits;
 }
 
-async function enviarEmailLembrete(agendamento) {
-  if (!process.env.RESEND_API_KEY) {
-    throw new Error("RESEND_API_KEY não configurada");
-  }
-
+export async function enviarEmailLembrete(agendamento) {
   if (!agendamento.email) {
     return;
   }
@@ -56,6 +68,11 @@ async function enviarEmailLembrete(agendamento) {
   const dataFmt = formatInTimeZone(dataAgendamento, TZ, "dd/MM/yyyy", {
     locale: ptBR,
   });
+  const nomeCompleto = escapeHtml(
+    [agendamento.nome, agendamento.sobrenome].filter(Boolean).join(" ")
+  );
+  const servico = escapeHtml(agendamento.servico);
+  const observacoes = escapeHtml(agendamento.observacoes);
 
   const htmlEmail = `
     <!DOCTYPE html>
@@ -73,17 +90,15 @@ async function enviarEmailLembrete(agendamento) {
     <body>
       <div class="container">
         <h2>🔔 Lembrete de Agendamento</h2>
-        <p>Olá <strong>${agendamento.nome} ${
-    agendamento.sobrenome
-  }</strong>,</p>
+        <p>Olá <strong>${nomeCompleto}</strong>,</p>
         <p>Este é um lembrete de que você tem um agendamento marcado para <strong>${dataFmt} às ${hora}</strong>.</p>
         <div class="info-box">
           <p style="margin: 5px 0;"><strong>📋 Serviço:</strong> ${
-            agendamento.servico
+            servico
           }</p>
           ${
             agendamento.observacoes
-              ? `<p style="margin: 5px 0;"><strong>📝 Observações:</strong> ${agendamento.observacoes}</p>`
+              ? `<p style="margin: 5px 0;"><strong>📝 Observações:</strong> ${observacoes}</p>`
               : ""
           }
         </div>
@@ -98,7 +113,7 @@ async function enviarEmailLembrete(agendamento) {
 
   const from = `Sistema de Agendamentos <${getFromEmail()}>`;
 
-  const resp = await resend.emails.send({
+  const resp = await getResendClient().emails.send({
     from,
     to: agendamento.email,
     subject: "🔔 Lembrete: Agendamento",
@@ -216,7 +231,67 @@ function getJanelaAmanhaUtc() {
   return { amanha00Utc, depoisDeAmanha00Utc };
 }
 
+const camposPorCanal = {
+  email: {
+    enviado: "lembrete_email_enviado",
+    processando: "lembrete_email_processando_em",
+  },
+  whatsapp: {
+    enviado: "lembrete_whatsapp_enviado",
+    processando: "lembrete_whatsapp_processando_em",
+  },
+};
+
+async function reivindicarEnvio(agendamentoId, canal) {
+  const campos = camposPorCanal[canal];
+  const limiteTravamento = new Date(Date.now() - 15 * 60 * 1000);
+  const agora = new Date();
+
+  const resultado = await prisma.agendamento.updateMany({
+    where: {
+      id: agendamentoId,
+      [campos.enviado]: false,
+      OR: [
+        { [campos.processando]: null },
+        { [campos.processando]: { lt: limiteTravamento } },
+      ],
+    },
+    data: { [campos.processando]: agora },
+  });
+
+  return resultado.count === 1;
+}
+
+async function concluirEnvio(agendamentoId, canal) {
+  const campos = camposPorCanal[canal];
+
+  await prisma.agendamento.update({
+    where: { id: agendamentoId },
+    data: {
+      [campos.enviado]: true,
+      [campos.processando]: null,
+      lembrete_enviado: true,
+    },
+  });
+}
+
+async function liberarEnvio(agendamentoId, canal) {
+  const campos = camposPorCanal[canal];
+
+  await prisma.agendamento.update({
+    where: { id: agendamentoId },
+    data: { [campos.processando]: null },
+  });
+}
+
 async function enviarLembretes() {
+  if (lembretesEmExecucao) {
+    console.log("⏭️ Processamento de lembretes já está em execução.");
+    return;
+  }
+
+  lembretesEmExecucao = true;
+
   try {
     console.log("🔔 enviarLembretes() chamado | TZ =", TZ);
 
@@ -235,20 +310,21 @@ async function enviarLembretes() {
           gte: amanha00Utc,
           lt: depoisDeAmanha00Utc,
         },
-        lembrete_enviado: false,
         status: {
           in: ["pendente", "confirmado"],
         },
         OR: [
           {
-            email: {
-              not: null,
-            },
+            AND: [
+              { email: { not: null } },
+              { lembrete_email_enviado: false },
+            ],
           },
           {
-            contato: {
-              not: null,
-            },
+            AND: [
+              { contato: { not: null } },
+              { lembrete_whatsapp_enviado: false },
+            ],
           },
         ],
       },
@@ -262,24 +338,23 @@ async function enviarLembretes() {
     let falhasWhatsapp = 0;
 
     for (const agendamento of agendamentos) {
-      let emailEnviado = false;
-      let whatsappEnviado = false;
-    
       if (
         agendamento.email &&
         String(agendamento.email).trim() !== "" &&
-        !agendamento.lembrete_email_enviado
+        !agendamento.lembrete_email_enviado &&
+        (await reivindicarEnvio(agendamento.id, "email"))
       ) {
         try {
           const result = await enviarEmailLembrete(agendamento);
+          await concluirEnvio(agendamento.id, "email");
           enviadosEmail++;
-          emailEnviado = true;
-    
+
           console.log(
             `✅ Email enviado (Resend) para ${agendamento.email}`,
             result?.data?.id || ""
           );
         } catch (error) {
+          await liberarEnvio(agendamento.id, "email");
           falhasEmail++;
           console.error(
             `❌ Erro ao enviar email (Resend) para ${agendamento.email}:`,
@@ -291,18 +366,20 @@ async function enviarLembretes() {
       if (
         agendamento.contato &&
         String(agendamento.contato).trim() !== "" &&
-        !agendamento.lembrete_whatsapp_enviado
+        !agendamento.lembrete_whatsapp_enviado &&
+        (await reivindicarEnvio(agendamento.id, "whatsapp"))
       ) {
         try {
           const result = await enviarWhatsAppTemplate(agendamento);
+          await concluirEnvio(agendamento.id, "whatsapp");
           enviadosWhatsapp++;
-          whatsappEnviado = true;
-    
+
           console.log(
             `✅ WhatsApp template enviado para ${agendamento.contato}`,
             result?.messages?.[0]?.id || ""
           );
         } catch (error) {
+          await liberarEnvio(agendamento.id, "whatsapp");
           falhasWhatsapp++;
           console.error(
             `❌ Erro ao enviar WhatsApp template para ${agendamento.contato}:`,
@@ -323,21 +400,6 @@ async function enviarLembretes() {
           }
         }
       }
-    
-      if (emailEnviado || whatsappEnviado) {
-        await prisma.agendamento.update({
-          where: { id: agendamento.id },
-          data: {
-            lembrete_email_enviado:
-              agendamento.lembrete_email_enviado || emailEnviado,
-            lembrete_whatsapp_enviado:
-              agendamento.lembrete_whatsapp_enviado || whatsappEnviado,
-            lembrete_enviado:
-              (agendamento.lembrete_email_enviado || emailEnviado) ||
-              (agendamento.lembrete_whatsapp_enviado || whatsappEnviado),
-          },
-        });
-      }
     }
 
     console.log(
@@ -345,12 +407,14 @@ async function enviarLembretes() {
     );
   } catch (error) {
     console.error("❌ Erro ao processar lembretes:", error);
+  } finally {
+    lembretesEmExecucao = false;
   }
 }
 
 export function iniciarCronLembretes() {
   cron.schedule(
-    "0 10 * * *",
+    "0 * * * *",
     () => {
       console.log("🔔 Executando job de lembretes por email + WhatsApp...");
       enviarLembretes();
@@ -359,53 +423,15 @@ export function iniciarCronLembretes() {
   );
 
   console.log(
-    "⏰ Cron de lembretes iniciado (executa às 10:00 diariamente no timezone do app)"
+    "⏰ Cron de lembretes iniciado (executa a cada hora no timezone do app)"
   );
+
+  setTimeout(() => {
+    console.log("🔔 Executando verificação inicial de lembretes...");
+    enviarLembretes();
+  }, 5000);
 }
 
 export async function executarLembretesAgora() {
   return enviarLembretes();
-}
-
-export async function sendReminderInteractive(to, agendamento) {
-  const url = `https://graph.facebook.com/v20.0/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`;
-
-  const confirmId = `confirm:${agendamento.id}`;
-  const rescheduleId = `reschedule:${agendamento.id}`;
-  const otherId = `other:${agendamento.id}`;
-
-  await axios.post(
-    url,
-    {
-      messaging_product: "whatsapp",
-      to,
-      type: "interactive",
-      interactive: {
-        type: "button",
-        body: {
-          text:
-            `📅 Lembrete de agendamento\n` +
-            `Cliente: ${agendamento.nome}\n` +
-            `Data/Hora: ${agendamento.dataHora}\n\n` +
-            `Selecione uma opção:`,
-        },
-        action: {
-          buttons: [
-            { type: "reply", reply: { id: confirmId, title: "✅ Confirmar" } },
-            {
-              type: "reply",
-              reply: { id: rescheduleId, title: "🔁 Remarcar" },
-            },
-            { type: "reply", reply: { id: otherId, title: "❓ Outros" } },
-          ],
-        },
-      },
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
-        "Content-Type": "application/json",
-      },
-    }
-  );
 }

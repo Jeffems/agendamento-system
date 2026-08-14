@@ -1,6 +1,7 @@
 import crypto from "crypto";
 
-const ALGORITHM = "aes-256-cbc";
+const ALGORITHM = "aes-256-gcm";
+const LEGACY_ALGORITHM = "aes-256-cbc";
 const SECRET = process.env.WHATSAPP_CONFIG_SECRET;
 
 function getKey() {
@@ -19,12 +20,33 @@ export function encrypt(text) {
 
   let encrypted = cipher.update(text, "utf8", "hex");
   encrypted += cipher.final("hex");
+  const authTag = cipher.getAuthTag();
 
-  return `${iv.toString("hex")}:${encrypted}`;
+  return `v2:${iv.toString("hex")}:${authTag.toString("hex")}:${encrypted}`;
 }
 
 export function decrypt(payload) {
   if (!payload) return null;
+
+  if (payload.startsWith("v2:")) {
+    const [, ivHex, authTagHex, encrypted] = payload.split(":");
+
+    if (!ivHex || !authTagHex || !encrypted) {
+      throw new Error("Token criptografado inválido");
+    }
+
+    const decipher = crypto.createDecipheriv(
+      ALGORITHM,
+      getKey(),
+      Buffer.from(ivHex, "hex")
+    );
+    decipher.setAuthTag(Buffer.from(authTagHex, "hex"));
+
+    let decrypted = decipher.update(encrypted, "hex", "utf8");
+    decrypted += decipher.final("utf8");
+
+    return decrypted;
+  }
 
   const [ivHex, encrypted] = payload.split(":");
   if (!ivHex || !encrypted) {
@@ -32,7 +54,7 @@ export function decrypt(payload) {
   }
 
   const iv = Buffer.from(ivHex, "hex");
-  const decipher = crypto.createDecipheriv(ALGORITHM, getKey(), iv);
+  const decipher = crypto.createDecipheriv(LEGACY_ALGORITHM, getKey(), iv);
 
   let decrypted = decipher.update(encrypted, "hex", "utf8");
   decrypted += decipher.final("utf8");

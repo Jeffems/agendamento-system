@@ -1,6 +1,7 @@
 import prisma from "../lib/prisma.js";
 import { sendText, sendTemplate } from "../services/whatsappService.js";
 import { encrypt, decrypt } from "../utils/crypto.js";
+import crypto from "crypto";
 
 function normalizarTelefoneBR(numero) {
   if (!numero) return null;
@@ -242,6 +243,28 @@ export async function disconnectWhatsApp(req, res) {
 
 export async function webhookHandler(req, res) {
   try {
+    const appSecret = process.env.WHATSAPP_APP_SECRET;
+    const assinatura = req.get("x-hub-signature-256");
+
+    if (!appSecret || !assinatura || !req.rawBody) {
+      return res.sendStatus(401);
+    }
+
+    const assinaturaEsperada = `sha256=${crypto
+      .createHmac("sha256", appSecret)
+      .update(req.rawBody)
+      .digest("hex")}`;
+
+    const recebida = Buffer.from(assinatura);
+    const esperada = Buffer.from(assinaturaEsperada);
+
+    if (
+      recebida.length !== esperada.length ||
+      !crypto.timingSafeEqual(recebida, esperada)
+    ) {
+      return res.sendStatus(401);
+    }
+
     const entry = req.body?.entry?.[0];
     const change = entry?.changes?.[0];
     const value = change?.value;

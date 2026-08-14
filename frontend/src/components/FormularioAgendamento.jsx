@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Calendar, Clock, User, Mail, Briefcase, X, Phone } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { clientesAPI } from "../services/api";
+import ClienteAutocomplete from "./ClienteAutocomplete";
 
 function isoToLocalString(iso) {
   if (!iso) return "";
@@ -48,63 +48,21 @@ export default function FormularioAgendamento({
     };
   });
 
-  const [clientes, setClientes] = useState([]);
-  const [carregandoClientes, setCarregandoClientes] = useState(true);
-  const [buscaCliente, setBuscaCliente] = useState("");
-
-  const clientesFiltrados = clientes.filter((cliente) => {
-    const termo = buscaCliente.toLowerCase().trim();
-  
-    if (!termo) return true;
-  
-    const nomeCompleto = `${cliente.nome || ""} ${cliente.sobrenome || ""}`
-      .toLowerCase();
-  
-    const contato = (cliente.contato || "").toLowerCase();
-    const email = (cliente.email || "").toLowerCase();
-  
-    return (
-      nomeCompleto.includes(termo) ||
-      contato.includes(termo) ||
-      email.includes(termo)
-    );
-  });
-  useEffect(() => {
-    async function carregarClientes() {
-      try {
-        setCarregandoClientes(true);
-        const response = await clientesAPI.listar();
-        setClientes(response.data || []);
-      } catch (error) {
-        console.error("Erro ao carregar clientes:", error);
-        toast.error("Não foi possível carregar os clientes cadastrados.");
-      } finally {
-        setCarregandoClientes(false);
-      }
-    }
-
-    carregarClientes();
-  }, []);
-
   const handleChange = (field, value) => {
     setDados((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSelecionarCliente = (clienteId) => {
-    if (!clienteId) {
+  const handleSelecionarCliente = (cliente, opcoes = {}) => {
+    if (!cliente) {
       setDados((prev) => ({
         ...prev,
         clienteId: null,
-        nome: "",
-        sobrenome: "",
-        email: "",
-        contato: "",
+        ...(opcoes.limparCampos === false
+          ? {}
+          : { nome: "", sobrenome: "", email: "", contato: "" }),
       }));
       return;
     }
-
-    const cliente = clientes.find((item) => item.id === clienteId);
-    if (!cliente) return;
 
     setDados((prev) => ({
       ...prev,
@@ -162,37 +120,11 @@ export default function FormularioAgendamento({
 
       <form onSubmit={handleSubmit} className="p-8">
         <div className="space-y-6">
-          <div className="space-y-2">
-            <label className="flex items-center gap-2 text-slate-700 font-medium text-sm">
-              <User className="w-4 h-4 text-slate-500" />
-              Cliente cadastrado
-            </label>
-
-            <select
-              value={dados.clienteId || ""}
-              onChange={(e) => handleSelecionarCliente(e.target.value)}
-              disabled={carregandoClientes}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-white focus:border-slate-900 focus:ring-2 focus:ring-slate-900/20 outline-none transition-all disabled:bg-slate-100"
-            >
-              <option value="">
-                {carregandoClientes
-                  ? "Carregando clientes..."
-                  : "Preencher os dados manualmente"}
-              </option>
-
-              {clientes.map((cliente) => (
-                <option key={cliente.id} value={cliente.id}>
-                  {[cliente.nome, cliente.sobrenome].filter(Boolean).join(" ")}
-                  {cliente.contato ? ` — ${cliente.contato}` : ""}
-                </option>
-              ))}
-            </select>
-
-            <p className="text-xs text-slate-500">
-              Selecione um cliente para preencher nome, e-mail e WhatsApp
-              automaticamente.
-            </p>
-          </div>
+          <ClienteAutocomplete
+            value={dados.clienteId}
+            clienteAtual={agendamento?.cliente || null}
+            onSelecionar={handleSelecionarCliente}
+          />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
@@ -220,7 +152,6 @@ export default function FormularioAgendamento({
                 value={dados.sobrenome}
                 onChange={(e) => handleChange("sobrenome", e.target.value)}
                 placeholder="Digite o sobrenome"
-                required
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:border-slate-900 focus:ring-2 focus:ring-slate-900/20 outline-none transition-all"
               />
             </div>

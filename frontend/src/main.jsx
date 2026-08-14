@@ -1,6 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Toaster } from "sonner";
 
 import Register from "./pages/Register";
 import App from "./App";
@@ -13,6 +14,7 @@ import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
+    <Toaster position="top-right" richColors />
     <BrowserRouter>
       <Routes>
         {/* Rotas públicas */}
