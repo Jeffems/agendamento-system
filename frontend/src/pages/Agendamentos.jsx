@@ -19,7 +19,7 @@ import {
   Calendar,
 } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
-import { agendamentosAPI } from "../services/api";
+import { agendamentosAPI, configuracoesAPI } from "../services/api";
 import AppShell from "../components/AppShell";
 import FormularioAgendamento from "../components/FormularioAgendamento";
 import CardAgendamento from "../components/CardAgendamento";
@@ -37,6 +37,7 @@ export default function Agendamentos() {
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [agendamentoEditando, setAgendamentoEditando] = useState(null);
   const [processando, setProcessando] = useState(false);
+  const [configuracaoPendente, setConfiguracaoPendente] = useState(false);
 
   const [filtros, setFiltros] = useState({
     busca: "",
@@ -61,6 +62,7 @@ export default function Agendamentos() {
 
   useEffect(() => {
     carregarAgendamentos();
+    configuracoesAPI.obter().then(({ data }) => setConfiguracaoPendente(!data.onboarding_concluido)).catch(() => {});
   }, []);
 
   const carregarAgendamentos = async () => {
@@ -338,6 +340,8 @@ export default function Agendamentos() {
         </div>
 
         {/* Estatísticas */}
+        {configuracaoPendente && <div className="mb-6 flex flex-col gap-4 rounded-2xl border border-indigo-200 bg-indigo-50 p-5 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-bold text-indigo-950">Finalize a configuração da sua empresa</p><p className="mt-1 text-sm text-indigo-700">Cadastre seus serviços e horários para agilizar os próximos agendamentos.</p></div><button onClick={() => navigate("/configuracoes")} className="btn-primary shrink-0">Configurar agora</button></div>}
+
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 lg:gap-5 mb-8">
           <div className="app-surface p-4 lg:p-6">
             <div className="flex items-center justify-between">

@@ -46,6 +46,11 @@ const clienteIdSchema = z
   .optional()
   .transform((value) => value || null);
 
+const servicoIdSchema = z
+  .union([z.string().uuid("Serviço inválido"), z.literal(""), z.null()])
+  .optional()
+  .transform((value) => value || null);
+
 const camposAgendamento = {
   nome: z.string().trim().min(2, "Nome deve ter pelo menos 2 caracteres"),
   sobrenome: sobrenomeSchema,
@@ -57,6 +62,7 @@ const camposAgendamento = {
   status: z.enum(statusAgendamentoValues),
   observacoes: observacoesSchema,
   clienteId: clienteIdSchema,
+  servicoId: servicoIdSchema,
 };
 
 export const agendamentoSchema = z.object({

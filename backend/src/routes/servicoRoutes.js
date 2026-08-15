@@ -1,0 +1,10 @@
+import express from "express";
+import { authMiddleware } from "../middlewares/authMiddleware.js";
+import { listarServicos, criarServico, atualizarServico, deletarServico } from "../controllers/servicoController.js";
+const router = express.Router();
+const asyncRoute = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
+router.get("/", authMiddleware, asyncRoute(listarServicos));
+router.post("/", authMiddleware, asyncRoute(criarServico));
+router.put("/:id", authMiddleware, asyncRoute(atualizarServico));
+router.delete("/:id", authMiddleware, asyncRoute(deletarServico));
+export default router;

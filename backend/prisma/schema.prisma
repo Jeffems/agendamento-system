@@ -44,6 +44,17 @@ model Usuario {
 
   agendamentos Agendamento[]
   clientes     Cliente[]
+  servicos     Servico[]
+
+  nome_negocio              String?
+  telefone_negocio          String?
+  endereco_negocio          String?
+  logo_url                  String?
+  timezone                  String   @default("America/Cuiaba")
+  horarios_funcionamento    Json?
+  lembrete_email_ativo      Boolean  @default(true)
+  lembrete_whatsapp_ativo   Boolean  @default(true)
+  onboarding_concluido      Boolean  @default(false)
 
   @@map("usuarios")
 }
@@ -71,11 +82,33 @@ model Agendamento {
   usuario   Usuario? @relation(fields: [usuarioId], references: [id])
   clienteId String?
   cliente   Cliente? @relation(fields: [clienteId], references: [id])
+  servicoId String?
+  servicoCadastro Servico? @relation(fields: [servicoId], references: [id])
 
   @@index([usuarioId])
   @@index([data_agendamento])
   @@index([usuarioId, data_agendamento])
+  @@index([servicoId])
   @@map("agendamentos")
+}
+
+model Servico {
+  id          String  @id @default(uuid())
+  usuarioId   String
+  nome        String
+  descricao   String?
+  preco       Decimal? @db.Decimal(10, 2)
+  duracao_min Int     @default(60)
+  cor         String  @default("#4f46e5")
+  ativo       Boolean @default(true)
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime @updatedAt @db.Timestamptz(6)
+
+  usuario      Usuario       @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  agendamentos Agendamento[]
+
+  @@index([usuarioId, ativo])
+  @@map("servicos")
 }
 
 model Invite {

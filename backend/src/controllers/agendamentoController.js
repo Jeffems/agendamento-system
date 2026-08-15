@@ -17,6 +17,11 @@ async function clientePertenceAoUsuario(clienteId, usuarioId) {
   return Boolean(cliente);
 }
 
+async function servicoPertenceAoUsuario(servicoId, usuarioId) {
+  if (!servicoId) return true;
+  return Boolean(await prisma.servico.findFirst({ where: { id: servicoId, usuarioId, ativo: true }, select: { id: true } }));
+}
+
 function normalizeAtualizacaoPayload(body) {
   const parsed = atualizarAgendamentoSchema.safeParse(body);
 
@@ -139,7 +144,7 @@ export const listarAgendamentos = async (req, res) => {
     const agendamentos = await prisma.agendamento.findMany({
       where: { usuarioId },
       orderBy: { data_agendamento: "desc" },
-      include: { cliente: true },
+      include: { cliente: true, servicoCadastro: true },
     });
 
     return res.json(agendamentos);
@@ -156,7 +161,7 @@ export const obterAgendamento = async (req, res) => {
 
     const agendamento = await prisma.agendamento.findFirst({
       where: { id, usuarioId },
-      include: { cliente: true },
+      include: { cliente: true, servicoCadastro: true },
     });
 
     if (!agendamento) {
@@ -190,6 +195,10 @@ export const criarAgendamento = async (req, res) => {
       });
     }
 
+    if (!(await servicoPertenceAoUsuario(normalized.data.servicoId, usuarioId))) {
+      return res.status(400).json({ error: "Serviço inválido ou inativo" });
+    }
+
     const conflito = await checkHorarioConflitante({
       usuarioId,
       dataAgendamento: normalized.data.data_agendamento,
@@ -215,7 +224,7 @@ export const criarAgendamento = async (req, res) => {
         usuarioId,
         lembrete_enviado: false,
       },
-      include: { cliente: true },
+      include: { cliente: true, servicoCadastro: true },
     });
 
     return res.status(201).json(agendamento);
@@ -256,6 +265,10 @@ export const atualizarAgendamento = async (req, res) => {
       return res.status(400).json({
         error: "Cliente inválido ou não pertence ao usuário logado",
       });
+    }
+
+    if (Object.prototype.hasOwnProperty.call(dadosAtualizados, "servicoId") && !(await servicoPertenceAoUsuario(dadosAtualizados.servicoId, usuarioId))) {
+      return res.status(400).json({ error: "Serviço inválido ou inativo" });
     }
 
     const camposQueInvalidamLembrete = [
@@ -314,7 +327,7 @@ export const atualizarAgendamento = async (req, res) => {
     const agendamentoAtualizado = await prisma.agendamento.update({
       where: { id },
       data: dadosAtualizados,
-      include: { cliente: true },
+      include: { cliente: true, servicoCadastro: true },
     });
 
     return res.json(agendamentoAtualizado);
@@ -376,7 +389,7 @@ export const enviarLembreteEmailManual = async (req, res) => {
         lembrete_email_enviado: true,
         lembrete_enviado: true,
       },
-      include: { cliente: true },
+      include: { cliente: true, servicoCadastro: true },
     });
 
     return res.json({

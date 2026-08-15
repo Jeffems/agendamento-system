@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Calendar, Clock, User, Mail, Briefcase, X, Phone } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import ClienteAutocomplete from "./ClienteAutocomplete";
+import { servicosAPI } from "../services/api";
 
 function isoToLocalString(iso) {
   if (!iso) return "";
@@ -26,6 +27,7 @@ export default function FormularioAgendamento({
     if (!agendamento) {
       return {
         clienteId: null,
+        servicoId: null,
         nome: "",
         sobrenome: "",
         email: "",
@@ -41,12 +43,18 @@ export default function FormularioAgendamento({
     return {
       ...agendamento,
       clienteId: agendamento.clienteId || agendamento.cliente?.id || null,
+      servicoId: agendamento.servicoId || agendamento.servicoCadastro?.id || null,
       email: agendamento.email || "",
       contato: agendamento.contato || "",
       duracao_min: agendamento.duracao_min || 60,
       data_agendamento: isoToLocalString(agendamento.data_agendamento),
     };
   });
+  const [servicos, setServicos] = useState([]);
+
+  useEffect(() => {
+    servicosAPI.listar().then(({ data }) => setServicos(data.filter((s) => s.ativo))).catch(() => setServicos([]));
+  }, []);
 
   const handleChange = (field, value) => {
     setDados((prev) => ({ ...prev, [field]: value }));
@@ -157,6 +165,17 @@ export default function FormularioAgendamento({
             </div>
           </div>
 
+          {servicos.length > 0 && <div className="space-y-2">
+            <label className="flex items-center gap-2 text-slate-700 font-medium text-sm"><Briefcase className="w-4 h-4 text-indigo-500" />Serviço cadastrado</label>
+            <select value={dados.servicoId || ""} onChange={(e) => {
+              const selecionado = servicos.find((s) => s.id === e.target.value);
+              setDados((prev) => ({ ...prev, servicoId: selecionado?.id || null, ...(selecionado ? { servico: selecionado.nome, duracao_min: selecionado.duracao_min } : {}) }));
+            }} className="app-input">
+              <option value="">Preencher serviço manualmente</option>
+              {servicos.map((s) => <option key={s.id} value={s.id}>{s.nome} · {s.duracao_min} min{s.preco != null ? ` · R$ ${Number(s.preco).toFixed(2).replace(".", ",")}` : ""}</option>)}
+            </select>
+          </div>}
+
           <div className="space-y-2">
             <label className="flex items-center gap-2 text-slate-700 font-medium text-sm">
               <Mail className="w-4 h-4 text-slate-500" />
@@ -193,10 +212,10 @@ export default function FormularioAgendamento({
             <input
               type="text"
               value={dados.servico}
-              onChange={(e) => handleChange("servico", e.target.value)}
+              onChange={(e) => setDados((prev) => ({ ...prev, servico: e.target.value, servicoId: null }))}
               placeholder="Descreva o serviço"
               required
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:border-slate-900 focus:ring-2 focus:ring-slate-900/20 outline-none transition-all"
+              className="app-input"
             />
           </div>
 

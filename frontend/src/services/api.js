@@ -63,3 +63,15 @@ export const clientesAPI = {
   atualizar: (id, dados) => api.put(`/api/clientes/${id}`, dados),
   deletar: (id) => api.delete(`/api/clientes/${id}`),
 };
+
+export const configuracoesAPI = {
+  obter: () => api.get("/api/configuracoes"),
+  atualizar: (dados) => api.put("/api/configuracoes", dados),
+};
+
+export const servicosAPI = {
+  listar: () => api.get("/api/servicos"),
+  criar: (dados) => api.post("/api/servicos", dados),
+  atualizar: (id, dados) => api.put(`/api/servicos/${id}`, dados),
+  deletar: (id) => api.delete(`/api/servicos/${id}`),
+};
