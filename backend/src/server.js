@@ -16,6 +16,7 @@ import inviteRoutes from "./routes/inviteRoutes.js";
 import clienteRoutes from "./routes/clienteRoutes.js";
 import configuracaoRoutes from "./routes/configuracaoRoutes.js";
 import servicoRoutes from "./routes/servicoRoutes.js";
+import publicAgendaRoutes from "./routes/publicAgendaRoutes.js";
 import prisma from "./lib/prisma.js";
 
 import { iniciarCronLembretes } from "./services/lembreteService.js";
@@ -125,6 +126,7 @@ app.use("/whatsapp", whatsappRoutes);
 app.use("/api/clientes", apiLimiter, clienteRoutes);
 app.use("/api/configuracoes", apiLimiter, configuracaoRoutes);
 app.use("/api/servicos", apiLimiter, servicoRoutes);
+app.use("/api/public/agenda", apiLimiter, publicAgendaRoutes);
 app.use((err, req, res, next) => {
   console.error("Erro não tratado:", err);
 

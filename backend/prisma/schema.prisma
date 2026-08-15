@@ -55,6 +55,11 @@ model Usuario {
   lembrete_email_ativo      Boolean  @default(true)
   lembrete_whatsapp_ativo   Boolean  @default(true)
   onboarding_concluido      Boolean  @default(false)
+  slug                       String?  @unique
+  agenda_publica_ativa       Boolean  @default(false)
+  intervalo_agendamento_min Int      @default(15)
+  antecedencia_min_horas     Int      @default(2)
+  limite_agendamento_dias    Int      @default(60)
 
   @@map("usuarios")
 }

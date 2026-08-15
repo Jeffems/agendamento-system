@@ -10,6 +10,7 @@ import PrivateRoute from "./components/PrivateRoute";
 import WhatsappSettings from "./pages/WhatsappSettings.jsx";
 import Clientes from "./pages/Clientes.jsx";
 import Configuracoes from "./pages/Configuracoes.jsx";
+import AgendamentoPublico from "./pages/AgendamentoPublico.jsx";
 
 import "./index.css";
 
@@ -21,6 +22,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         {/* Rotas públicas */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/agendar/:slug" element={<AgendamentoPublico />} />
         {/* Rotas protegidas */}
         <Route element={<PrivateRoute />}>
           <Route path="/" element={<App />} />

@@ -75,3 +75,9 @@ export const servicosAPI = {
   atualizar: (id, dados) => api.put(`/api/servicos/${id}`, dados),
   deletar: (id) => api.delete(`/api/servicos/${id}`),
 };
+
+export const agendaPublicaAPI = {
+  obter: (slug) => api.get(`/api/public/agenda/${slug}`),
+  horarios: (slug, data, servicoId) => api.get(`/api/public/agenda/${slug}/horarios`, { params: { data, servicoId } }),
+  agendar: (slug, dados) => api.post(`/api/public/agenda/${slug}/agendamentos`, dados),
+};

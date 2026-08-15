@@ -17,6 +17,11 @@ const configuracaoSchema = z.object({
   lembrete_email_ativo: z.boolean().optional(),
   lembrete_whatsapp_ativo: z.boolean().optional(),
   onboarding_concluido: z.boolean().optional(),
+  slug: z.union([z.string().trim().min(3).max(60).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/), z.literal(""), z.null()]).optional().transform((v) => v || null),
+  agenda_publica_ativa: z.boolean().optional(),
+  intervalo_agendamento_min: z.coerce.number().int().min(0).max(180).optional(),
+  antecedencia_min_horas: z.coerce.number().int().min(0).max(720).optional(),
+  limite_agendamento_dias: z.coerce.number().int().min(1).max(365).optional(),
 });
 
 const campos = {
@@ -25,6 +30,8 @@ const campos = {
   timezone: true, horarios_funcionamento: true,
   lembrete_email_ativo: true, lembrete_whatsapp_ativo: true,
   onboarding_concluido: true,
+  slug: true, agenda_publica_ativa: true, intervalo_agendamento_min: true,
+  antecedencia_min_horas: true, limite_agendamento_dias: true,
 };
 
 export async function obterConfiguracoes(req, res) {
@@ -37,6 +44,10 @@ export async function atualizarConfiguracoes(req, res) {
   const parsed = configuracaoSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: "Dados inválidos", details: parsed.error.flatten() });
   const data = Object.fromEntries(Object.entries(parsed.data).map(([k, v]) => [k, typeof v === "string" ? v.trim() || null : v]));
+  if (data.slug) {
+    const emUso = await prisma.usuario.findFirst({ where: { slug: data.slug, id: { not: req.user.id } }, select: { id: true } });
+    if (emUso) return res.status(409).json({ error: "Este endereço público já está em uso" });
+  }
   const usuario = await prisma.usuario.update({ where: { id: req.user.id }, data, select: campos });
   return res.json(usuario);
 }
