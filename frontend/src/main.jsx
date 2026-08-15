@@ -13,28 +13,39 @@ import Configuracoes from "./pages/Configuracoes.jsx";
 import AgendamentoPublico from "./pages/AgendamentoPublico.jsx";
 import Assinatura from "./pages/Assinatura.jsx";
 import AdminAssinaturas from "./pages/AdminAssinaturas.jsx";
+import Landing from "./pages/Landing.jsx";
+import Termos from "./pages/Termos.jsx";
+import Privacidade from "./pages/Privacidade.jsx";
+import NotFound from "./pages/NotFound.jsx";
+import ErrorBoundary from "./components/ErrorBoundary.jsx";
 
 import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
+    <ErrorBoundary>
     <Toaster position="top-right" richColors />
     <BrowserRouter>
       <Routes>
         {/* Rotas públicas */}
+        <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/agendar/:slug" element={<AgendamentoPublico />} />
+        <Route path="/termos" element={<Termos />} />
+        <Route path="/privacidade" element={<Privacidade />} />
         {/* Rotas protegidas */}
         <Route element={<PrivateRoute />}>
-          <Route path="/" element={<App />} />
+          <Route path="/app" element={<App />} />
           <Route path="/clientes" element={<Clientes />} />
           <Route path="/settings/whatsapp" element={<WhatsappSettings />} />
           <Route path="/configuracoes" element={<Configuracoes />} />
           <Route path="/assinatura" element={<Assinatura />} />
           <Route path="/admin/assinaturas" element={<AdminAssinaturas />} />
         </Route>
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
+    </ErrorBoundary>
   </React.StrictMode>
 );

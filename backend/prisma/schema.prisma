@@ -114,6 +114,16 @@ model StripeEvent {
   @@map("stripe_events")
 }
 
+model MarketingEvent {
+  id         String   @id @default(uuid())
+  evento     String
+  pagina     String?
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([evento, created_at])
+  @@map("marketing_events")
+}
+
 model Servico {
   id          String  @id @default(uuid())
   usuarioId   String

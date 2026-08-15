@@ -1,0 +1,3 @@
+import { Link } from "react-router-dom";
+import { CalendarDays } from "lucide-react";
+export default function NotFound() { return <div className="flex min-h-screen items-center justify-center bg-[#f6f7fb] p-5"><div className="app-surface max-w-md p-8 text-center"><CalendarDays className="mx-auto h-12 w-12 text-indigo-300"/><p className="mt-5 text-sm font-bold text-indigo-600">ERRO 404</p><h1 className="mt-2 text-2xl font-bold">Página não encontrada</h1><p className="mt-3 text-sm text-slate-500">O endereço informado não existe ou foi alterado.</p><Link to="/" className="btn-primary mt-6">Voltar ao início</Link></div></div>; }

@@ -1,0 +1,19 @@
+import LegalPage from "../components/LegalPage";
+import { brand } from "../config/brand";
+
+export default function Privacidade() {
+  const p = (texto) => <p>{texto}</p>;
+  const lista = (itens) => <ul className="list-disc space-y-1 pl-5">{itens.map(i => <li key={i}>{i}</li>)}</ul>;
+  return <LegalPage title="Política de Privacidade" subtitle={`Versão vigente em ${brand.legalVersion}`} sections={[
+    { title: "Quem é responsável", content: <>{p(`${brand.legalName}, documento ${brand.legalDocument}, é controladora dos dados da conta, cobrança, suporte e relacionamento comercial do ${brand.name}. Para dados inseridos por profissionais sobre seus próprios clientes, o profissional normalmente atua como controlador e a plataforma atua como operadora, conforme o contexto.`)}</> },
+    { title: "Dados tratados", content: <>{lista(["cadastro: nome, e-mail, senha protegida e aceites", "negócio: nome comercial, telefone, endereço, serviços e horários", "clientes e agendamentos: nome, contato, e-mail, serviço, data e observações", "assinatura: identificadores, plano e status fornecidos pelo Stripe", "segurança e operação: registros técnicos necessários à prevenção de abuso", "métricas públicas agregadas: página visualizada e ação de conversão, sem armazenar IP no banco de métricas"])}</> },
+    { title: "Finalidades e bases legais", content: <>{p("Tratamos dados para executar o contrato, autenticar usuários, disponibilizar a agenda, processar assinaturas, enviar lembretes, oferecer suporte, prevenir fraudes, cumprir obrigações legais e melhorar o produto. Comunicações de marketing dependem da escolha do usuário e podem ser canceladas.")}</> },
+    { title: "Compartilhamento e fornecedores", content: <>{p("Dados podem ser processados por fornecedores necessários à operação, como Railway e Vercel para hospedagem, Stripe para pagamentos, Resend para e-mails e Meta quando o WhatsApp oficial estiver configurado. Cada fornecedor trata dados conforme sua função e seus próprios compromissos de segurança e privacidade.")}</> },
+    { title: "Armazenamento e segurança", content: <>{p("Adotamos controles de autenticação, segregação por usuário, criptografia de credenciais sensíveis, validação de entradas e restrição de acesso. Nenhum sistema é absolutamente invulnerável; incidentes serão tratados conforme a legislação aplicável.")}</> },
+    { title: "Retenção", content: <>{p("Os dados são mantidos enquanto a conta estiver ativa e pelo tempo necessário ao cumprimento do contrato, obrigações legais, prevenção de fraude e exercício de direitos. Após solicitação válida, dados serão eliminados ou anonimizados quando não houver obrigação de conservação.")}</> },
+    { title: "Direitos do titular", content: <>{p("O titular pode solicitar confirmação do tratamento, acesso, correção, informação sobre compartilhamentos, portabilidade quando aplicável, revisão, oposição, anonimização, bloqueio ou eliminação nos casos previstos em lei, além de revogar consentimentos.")}</> },
+    { title: "Armazenamento local e métricas", content: <>{p("A aplicação utiliza armazenamento local ou de sessão para autenticação, preferências essenciais e evitar contagem repetida de uma mesma ação na sessão. A versão atual não instala cookies publicitários próprios. Caso ferramentas de publicidade ou análise com cookies sejam adicionadas, esta política e o mecanismo de consentimento deverão ser atualizados antes da ativação.")}</> },
+    { title: "Clientes dos assinantes", content: <>{p("Pedidos relacionados a dados cadastrados por um profissional devem ser encaminhados inicialmente ao próprio profissional. Quando necessário, prestaremos suporte ao assinante para atender a solicitação.")}</> },
+    { title: "Contato", content: <>{p(`Solicitações de privacidade podem ser enviadas para ${brand.privacyEmail}. Para suporte geral: ${brand.supportEmail}.`)}</> },
+  ]}/>;
+}

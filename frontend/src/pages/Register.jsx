@@ -18,16 +18,17 @@ export default function Register() {
 
   const [inviteError, setInviteError] = useState("");
 
-  // ✅ bloqueia cadastro sem token
+  const cadastroPublico = import.meta.env.VITE_ALLOW_PUBLIC_SIGNUP === "true";
+
   useEffect(() => {
-    if (!inviteToken) {
+    if (!inviteToken && !cadastroPublico) {
       setInviteError("Cadastro somente por convite. Peça um link de convite.");
     } else {
       setInviteError("");
     }
-  }, [inviteToken]);
+  }, [inviteToken, cadastroPublico]);
 
-  if (!inviteToken) {
+  if (!inviteToken && !cadastroPublico) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6 bg-slate-100">
         <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-6">
@@ -69,7 +70,7 @@ export default function Register() {
         nome,
         email,
         password,
-        inviteToken, // ✅ ESSENCIAL
+        inviteToken: inviteToken || null,
         accept: {
           terms,
           privacy,
@@ -77,12 +78,13 @@ export default function Register() {
         },
       });
 
-      const { token } = response.data;
+      const { token, user } = response.data;
 
       localStorage.setItem("token", token);
+      if (user) localStorage.setItem("user", JSON.stringify(user));
 
       toast.success("Cadastro realizado com sucesso!");
-      navigate("/");
+      navigate("/app");
     } catch (error) {
       const message =
         error.response?.data?.error || "Erro ao realizar cadastro";

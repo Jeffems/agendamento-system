@@ -21,6 +21,7 @@ import billingRoutes from "./routes/billingRoutes.js";
 import { stripeWebhook } from "./controllers/billingController.js";
 import { authMiddleware } from "./middlewares/authMiddleware.js";
 import { subscriptionMiddleware } from "./middlewares/subscriptionMiddleware.js";
+import marketingRoutes from "./routes/marketingRoutes.js";
 import prisma from "./lib/prisma.js";
 
 import { iniciarCronLembretes } from "./services/lembreteService.js";
@@ -134,6 +135,7 @@ app.use("/api/clientes", apiLimiter, authMiddleware, subscriptionMiddleware, cli
 app.use("/api/configuracoes", apiLimiter, authMiddleware, subscriptionMiddleware, configuracaoRoutes);
 app.use("/api/servicos", apiLimiter, authMiddleware, subscriptionMiddleware, servicoRoutes);
 app.use("/api/public/agenda", apiLimiter, publicAgendaRoutes);
+app.use("/api/public/metrics", apiLimiter, marketingRoutes);
 app.use((err, req, res, next) => {
   console.error("Erro não tratado:", err);
 

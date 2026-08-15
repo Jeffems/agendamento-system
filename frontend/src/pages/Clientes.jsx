@@ -166,7 +166,7 @@ export default function Clientes() {
           <div>
             <button
               type="button"
-              onClick={() => navigate("/")}
+              onClick={() => navigate("/app")}
               className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 mb-3"
             >
               <ArrowLeft className="w-4 h-4" />

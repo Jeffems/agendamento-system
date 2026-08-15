@@ -22,7 +22,10 @@ export async function listarAssinaturasAdmin(req, res) {
   if (!admins.includes(String(req.user.email || "").toLowerCase())) return res.status(403).json({ error: "Acesso restrito a administradores" });
   const usuarios = await prisma.usuario.findMany({ orderBy: { created_at: "desc" }, select: { id: true, nome: true, email: true, nome_negocio: true, plano: true, assinatura_status: true, trial_ends_at: true, assinatura_periodo_fim: true, cancelar_no_fim: true, created_at: true } });
   const resumo = usuarios.reduce((acc, u) => { acc.total++; if (u.assinatura_status === "active") acc.ativas++; else if (u.assinatura_status === "trialing" && u.trial_ends_at > new Date()) acc.testes++; else acc.inativas++; return acc; }, { total: 0, ativas: 0, testes: 0, inativas: 0 });
-  return res.json({ resumo, usuarios });
+  const desde = new Date(Date.now() - 30 * 86400000);
+  const agregados = await prisma.marketingEvent.groupBy({ by: ["evento"], where: { created_at: { gte: desde } }, _count: { _all: true } });
+  const metricas = Object.fromEntries(agregados.map((item) => [item.evento, item._count._all]));
+  return res.json({ resumo, usuarios, metricas });
 }
 
 export async function criarCheckout(req, res) {

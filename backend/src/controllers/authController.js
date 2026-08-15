@@ -23,7 +23,7 @@ const registerSchema = z.object({
   nome: z.string().min(2).optional(),
   email: z.string().trim().toLowerCase().email(),
   password: z.string().min(8),
-  inviteToken: z.string().min(10), // ✅ obrigatório
+  inviteToken: z.string().min(10).optional().nullable(),
   accept: z.object({
     terms: z.literal(true),
     privacy: z.literal(true),
@@ -42,25 +42,13 @@ export async function register(req, res) {
 
   const { nome, email, password, inviteToken, accept } = parsed.data;
 
-  // ✅ valida convite
-  const invite = await prisma.invite.findUnique({
-    where: { token: inviteToken },
-  });
-
-  if (!invite) {
-    return res.status(403).json({ error: "Convite inválido." });
-  }
-  if (invite.usedAt) {
-    return res.status(403).json({ error: "Convite já utilizado." });
-  }
-  if (invite.expiresAt < new Date()) {
-    return res.status(403).json({ error: "Convite expirado." });
-  }
-  if (invite.email.toLowerCase() !== email.toLowerCase()) {
-    return res
-      .status(403)
-      .json({ error: "Este convite não é para este email." });
-  }
+  const cadastroPublico = process.env.ALLOW_PUBLIC_SIGNUP === "true";
+  let invite = null;
+  if (inviteToken) invite = await prisma.invite.findUnique({ where: { token: inviteToken } });
+  if (!cadastroPublico && !invite) return res.status(403).json({ error: "Cadastro somente por convite." });
+  if (invite?.usedAt) return res.status(403).json({ error: "Convite já utilizado." });
+  if (invite && invite.expiresAt < new Date()) return res.status(403).json({ error: "Convite expirado." });
+  if (invite && invite.email.toLowerCase() !== email.toLowerCase()) return res.status(403).json({ error: "Este convite não é para este email." });
 
   const now = new Date();
   const passwordHash = await bcrypt.hash(password, 12);
@@ -91,8 +79,8 @@ export async function register(req, res) {
   } else {
     // existe por email
 
-    // se já tem senha, bloqueia re-cadastro
-    if (existing.password_hash) {
+    // contas existentes só podem definir senha por convite válido
+    if (existing.password_hash || !invite) {
       return res.status(409).json({ error: "Email já cadastrado. Faça login." });
     }
 
@@ -114,10 +102,7 @@ export async function register(req, res) {
   }
 
   // ✅ marca convite como usado
-  await prisma.invite.update({
-    where: { id: invite.id },
-    data: { usedAt: new Date() },
-  });
+  if (invite) await prisma.invite.update({ where: { id: invite.id }, data: { usedAt: new Date() } });
 
   const token = signToken(user);
 
