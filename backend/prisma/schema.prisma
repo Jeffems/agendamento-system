@@ -61,6 +61,15 @@ model Usuario {
   antecedencia_min_horas     Int      @default(2)
   limite_agendamento_dias    Int      @default(60)
 
+  plano                       String   @default("teste")
+  assinatura_status           String   @default("trialing")
+  trial_ends_at               DateTime @default(dbgenerated("(CURRENT_TIMESTAMP + interval '14 days')")) @db.Timestamptz(6)
+  stripe_customer_id          String?  @unique
+  stripe_subscription_id      String?  @unique
+  stripe_price_id             String?
+  assinatura_periodo_fim      DateTime? @db.Timestamptz(6)
+  cancelar_no_fim             Boolean  @default(false)
+
   @@map("usuarios")
 }
 
@@ -95,6 +104,14 @@ model Agendamento {
   @@index([usuarioId, data_agendamento])
   @@index([servicoId])
   @@map("agendamentos")
+}
+
+model StripeEvent {
+  id           String   @id
+  tipo         String
+  processado_em DateTime @default(now()) @db.Timestamptz(6)
+
+  @@map("stripe_events")
 }
 
 model Servico {

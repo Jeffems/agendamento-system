@@ -184,6 +184,11 @@ export async function me(req, res) {
       termos_versao: true,
       privacidade_versao: true,
       marketing_aceito: true,
+      plano: true,
+      assinatura_status: true,
+      trial_ends_at: true,
+      assinatura_periodo_fim: true,
+      cancelar_no_fim: true,
     },
   });
 

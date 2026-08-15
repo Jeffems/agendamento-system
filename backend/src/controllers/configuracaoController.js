@@ -44,6 +44,7 @@ export async function atualizarConfiguracoes(req, res) {
   const parsed = configuracaoSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: "Dados inválidos", details: parsed.error.flatten() });
   const data = Object.fromEntries(Object.entries(parsed.data).map(([k, v]) => [k, typeof v === "string" ? v.trim() || null : v]));
+  if (data.agenda_publica_ativa === true && req.subscription?.plano === "basico") return res.status(403).json({ error: "Agenda pública disponível no plano Profissional", code: "PLAN_UPGRADE_REQUIRED" });
   if (data.slug) {
     const emUso = await prisma.usuario.findFirst({ where: { slug: data.slug, id: { not: req.user.id } }, select: { id: true } });
     if (emUso) return res.status(409).json({ error: "Este endereço público já está em uso" });

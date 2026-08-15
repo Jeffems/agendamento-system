@@ -17,6 +17,10 @@ import clienteRoutes from "./routes/clienteRoutes.js";
 import configuracaoRoutes from "./routes/configuracaoRoutes.js";
 import servicoRoutes from "./routes/servicoRoutes.js";
 import publicAgendaRoutes from "./routes/publicAgendaRoutes.js";
+import billingRoutes from "./routes/billingRoutes.js";
+import { stripeWebhook } from "./controllers/billingController.js";
+import { authMiddleware } from "./middlewares/authMiddleware.js";
+import { subscriptionMiddleware } from "./middlewares/subscriptionMiddleware.js";
 import prisma from "./lib/prisma.js";
 
 import { iniciarCronLembretes } from "./services/lembreteService.js";
@@ -70,6 +74,8 @@ app.use(
   })
 );
 
+app.post("/api/billing/webhook", express.raw({ type: "application/json" }), stripeWebhook);
+
 app.use(
   express.json({
     limit: "1mb",
@@ -121,11 +127,12 @@ app.use("/auth/login", authLimiter);
 app.use("/auth/register", authLimiter);
 app.use("/invite", apiLimiter, inviteRoutes);
 app.use("/auth", authRoutes);
-app.use("/api/agendamentos", apiLimiter, agendamentoRoutes);
+app.use("/api/billing", apiLimiter, billingRoutes);
+app.use("/api/agendamentos", apiLimiter, authMiddleware, subscriptionMiddleware, agendamentoRoutes);
 app.use("/whatsapp", whatsappRoutes);
-app.use("/api/clientes", apiLimiter, clienteRoutes);
-app.use("/api/configuracoes", apiLimiter, configuracaoRoutes);
-app.use("/api/servicos", apiLimiter, servicoRoutes);
+app.use("/api/clientes", apiLimiter, authMiddleware, subscriptionMiddleware, clienteRoutes);
+app.use("/api/configuracoes", apiLimiter, authMiddleware, subscriptionMiddleware, configuracaoRoutes);
+app.use("/api/servicos", apiLimiter, authMiddleware, subscriptionMiddleware, servicoRoutes);
 app.use("/api/public/agenda", apiLimiter, publicAgendaRoutes);
 app.use((err, req, res, next) => {
   console.error("Erro não tratado:", err);

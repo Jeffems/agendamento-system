@@ -17,7 +17,7 @@ const criarSchema = z.object({
 
 async function obterAgenda(slug) {
   return prisma.usuario.findFirst({
-    where: { slug, agenda_publica_ativa: true },
+    where: { slug, agenda_publica_ativa: true, OR: [{ plano: "profissional", assinatura_status: "active" }, { plano: "teste", assinatura_status: "trialing", trial_ends_at: { gt: new Date() } }] },
     select: {
       id: true, nome: true, nome_negocio: true, telefone_negocio: true,
       endereco_negocio: true, logo_url: true, timezone: true,

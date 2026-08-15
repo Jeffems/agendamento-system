@@ -7,6 +7,7 @@ import {
   getMyWhatsApp,
   disconnectWhatsApp,
 } from "../controllers/whatsappController.js";
+import { professionalFeatureMiddleware, subscriptionMiddleware } from "../middlewares/subscriptionMiddleware.js";
 
 const router = express.Router();
 console.log("✅ whatsappRoutes carregado");
@@ -27,8 +28,8 @@ router.get("/webhook", (req, res) => {
 
 router.post("/webhook", webhookHandler);
 
-router.post("/connect", authMiddleware, connectWhatsApp);
-router.post("/send-test", authMiddleware, sendTest);
+router.post("/connect", authMiddleware, subscriptionMiddleware, professionalFeatureMiddleware, connectWhatsApp);
+router.post("/send-test", authMiddleware, subscriptionMiddleware, professionalFeatureMiddleware, sendTest);
 router.delete("/disconnect", authMiddleware, disconnectWhatsApp);
 
 export default router;

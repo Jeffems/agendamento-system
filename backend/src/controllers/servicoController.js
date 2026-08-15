@@ -18,6 +18,10 @@ export async function listarServicos(req, res) {
 export async function criarServico(req, res) {
   const parsed = schema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: "Dados inválidos", details: parsed.error.flatten() });
+  if (req.subscription?.plano === "basico") {
+    const total = await prisma.servico.count({ where: { usuarioId: req.user.id } });
+    if (total >= 5) return res.status(403).json({ error: "O plano Básico permite até 5 serviços", code: "PLAN_LIMIT_REACHED" });
+  }
   const servico = await prisma.servico.create({ data: { ...parsed.data, usuarioId: req.user.id } });
   return res.status(201).json(servico);
 }

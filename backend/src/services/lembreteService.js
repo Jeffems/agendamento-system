@@ -144,12 +144,19 @@ async function enviarWhatsAppTemplate(agendamento) {
       wa_access_token: true,
       wa_template_name: true,
       wa_template_language: true,
+      plano: true,
+      assinatura_status: true,
+      trial_ends_at: true,
+      lembrete_whatsapp_ativo: true,
     },
   });
 
   if (!usuario) {
     throw new Error("Usuário do agendamento não encontrado.");
   }
+
+  const acessoAtivo = usuario.assinatura_status === "active" || (usuario.assinatura_status === "trialing" && usuario.trial_ends_at > new Date());
+  if (!acessoAtivo || !["teste", "profissional"].includes(usuario.plano) || !usuario.lembrete_whatsapp_ativo) throw new Error("WhatsApp indisponível para esta assinatura.");
 
   if (usuario.wa_status !== "connected") {
     throw new Error("WhatsApp do usuário não está conectado.");
@@ -313,17 +320,20 @@ async function enviarLembretes() {
         status: {
           in: ["pendente", "confirmado"],
         },
+        usuario: { is: { OR: [{ assinatura_status: "active" }, { assinatura_status: "trialing", trial_ends_at: { gt: new Date() } }] } },
         OR: [
           {
             AND: [
               { email: { not: null } },
               { lembrete_email_enviado: false },
+              { usuario: { is: { lembrete_email_ativo: true } } },
             ],
           },
           {
             AND: [
               { contato: { not: null } },
               { lembrete_whatsapp_enviado: false },
+              { usuario: { is: { lembrete_whatsapp_ativo: true, plano: { in: ["teste", "profissional"] } } } },
             ],
           },
         ],

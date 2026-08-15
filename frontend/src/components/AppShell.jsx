@@ -1,4 +1,4 @@
-import { CalendarDays, LogOut, Menu, MessageCircle, Settings2, Users, X } from "lucide-react";
+import { CalendarDays, CreditCard, LogOut, Menu, MessageCircle, Settings2, Users, X } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useState } from "react";
 import { logout } from "./logout";
@@ -8,6 +8,7 @@ const links = [
   { to: "/clientes", label: "Clientes", icon: Users },
   { to: "/settings/whatsapp", label: "WhatsApp", icon: MessageCircle },
   { to: "/configuracoes", label: "Configurações", icon: Settings2 },
+  { to: "/assinatura", label: "Assinatura", icon: CreditCard },
 ];
 
 export default function AppShell({ children }) {

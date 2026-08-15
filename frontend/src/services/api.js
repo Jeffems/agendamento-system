@@ -26,6 +26,9 @@ api.interceptors.response.use(
         window.location.href = "/login";
       }
     }
+    if (error?.response?.status === 402 && window.location.pathname !== "/assinatura") {
+      window.location.href = "/assinatura";
+    }
 
     return Promise.reject(error);
   }
@@ -80,4 +83,12 @@ export const agendaPublicaAPI = {
   obter: (slug) => api.get(`/api/public/agenda/${slug}`),
   horarios: (slug, data, servicoId) => api.get(`/api/public/agenda/${slug}/horarios`, { params: { data, servicoId } }),
   agendar: (slug, dados) => api.post(`/api/public/agenda/${slug}/agendamentos`, dados),
+};
+
+export const billingAPI = {
+  planos: () => api.get("/api/billing/planos"),
+  assinatura: () => api.get("/api/billing/assinatura"),
+  checkout: (plano) => api.post("/api/billing/checkout", { plano }),
+  portal: () => api.post("/api/billing/portal"),
+  adminAssinaturas: () => api.get("/api/billing/admin/assinaturas"),
 };

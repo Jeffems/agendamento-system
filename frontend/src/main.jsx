@@ -11,6 +11,8 @@ import WhatsappSettings from "./pages/WhatsappSettings.jsx";
 import Clientes from "./pages/Clientes.jsx";
 import Configuracoes from "./pages/Configuracoes.jsx";
 import AgendamentoPublico from "./pages/AgendamentoPublico.jsx";
+import Assinatura from "./pages/Assinatura.jsx";
+import AdminAssinaturas from "./pages/AdminAssinaturas.jsx";
 
 import "./index.css";
 
@@ -29,6 +31,8 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="/clientes" element={<Clientes />} />
           <Route path="/settings/whatsapp" element={<WhatsappSettings />} />
           <Route path="/configuracoes" element={<Configuracoes />} />
+          <Route path="/assinatura" element={<Assinatura />} />
+          <Route path="/admin/assinaturas" element={<AdminAssinaturas />} />
         </Route>
       </Routes>
     </BrowserRouter>

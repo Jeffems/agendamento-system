@@ -1,0 +1,11 @@
+import express from "express";
+import { authMiddleware } from "../middlewares/authMiddleware.js";
+import { criarCheckout, criarPortal, listarAssinaturasAdmin, listarPlanos, obterAssinatura } from "../controllers/billingController.js";
+const router = express.Router();
+const asyncRoute = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
+router.get("/planos", listarPlanos);
+router.get("/assinatura", authMiddleware, asyncRoute(obterAssinatura));
+router.post("/checkout", authMiddleware, asyncRoute(criarCheckout));
+router.post("/portal", authMiddleware, asyncRoute(criarPortal));
+router.get("/admin/assinaturas", authMiddleware, asyncRoute(listarAssinaturasAdmin));
+export default router;
