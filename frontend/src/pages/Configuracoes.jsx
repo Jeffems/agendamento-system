@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { BriefcaseBusiness, Building2, Check, Clock3, Edit3, Plus, Save, Trash2, X } from "lucide-react";
+import { Briefcase, Building2, Check, Clock, Edit3, Plus, Save, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import AppShell from "../components/AppShell";
 import { configuracoesAPI, servicosAPI } from "../services/api";
@@ -63,7 +63,7 @@ export default function Configuracoes() {
   return <AppShell><main className="mx-auto max-w-[1200px] px-4 py-7 sm:px-6 lg:px-10 lg:py-10">
     <header className="mb-8"><p className="text-xs font-bold uppercase tracking-[.18em] text-indigo-600">Personalização</p><h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-950">Configurações do negócio</h1><p className="mt-2 text-slate-500">Prepare sua conta para trabalhar com a identidade e a rotina da sua empresa.</p></header>
     <div className="mb-6 flex gap-2 overflow-x-auto rounded-2xl border border-slate-200 bg-white p-1.5">
-      {[["negocio", Building2, "Meu negócio"], ["servicos", BriefcaseBusiness, "Serviços"], ["horarios", Clock3, "Horários"]].map(([id, Icon, nome]) => <button key={id} onClick={() => setAba(id)} className={`flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold ${aba === id ? "bg-indigo-600 text-white" : "text-slate-600 hover:bg-slate-50"}`}><Icon className="h-4 w-4"/>{nome}</button>)}
+      {[["negocio", Building2, "Meu negócio"], ["servicos", Briefcase, "Serviços"], ["horarios", Clock, "Horários"]].map(([id, Icon, nome]) => <button key={id} onClick={() => setAba(id)} className={`flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold ${aba === id ? "bg-indigo-600 text-white" : "text-slate-600 hover:bg-slate-50"}`}><Icon className="h-4 w-4"/>{nome}</button>)}
     </div>
     {carregando ? <div className="app-surface p-16 text-center text-slate-500">Carregando configurações...</div> : aba === "servicos" ? <section>
       <div className="mb-5 flex items-center justify-between"><div><h2 className="text-xl font-bold">Catálogo de serviços</h2><p className="text-sm text-slate-500">Preço e duração serão sugeridos no agendamento.</p></div><button onClick={() => abrirServico()} className="btn-primary"><Plus className="h-4 w-4"/>Novo serviço</button></div>
