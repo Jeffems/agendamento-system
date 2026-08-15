@@ -101,9 +101,9 @@ export default function FormularioAgendamento({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden"
+      className="app-surface overflow-hidden"
     >
-      <div className="bg-slate-900 px-8 py-6">
+      <div className="bg-gradient-to-r from-slate-950 to-indigo-950 px-6 sm:px-8 py-6">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold text-white">
             {agendamento ? "Editar Agendamento" : "Novo Agendamento"}
@@ -118,7 +118,7 @@ export default function FormularioAgendamento({
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="p-8">
+      <form onSubmit={handleSubmit} className="p-5 sm:p-8">
         <div className="space-y-6">
           <ClienteAutocomplete
             value={dados.clienteId}
@@ -315,7 +315,7 @@ export default function FormularioAgendamento({
           <button
             type="submit"
             disabled={isProcessing}
-            className="px-8 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg transition-colors disabled:opacity-50"
+            className="btn-primary px-8 py-2.5"
           >
             {isProcessing
               ? "Salvando..."

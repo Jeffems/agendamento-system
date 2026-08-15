@@ -17,13 +17,10 @@ import {
   LayoutGrid,
   List,
   Calendar,
-  Settings,
-  Users,
 } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import { agendamentosAPI } from "../services/api";
-import { logout } from "../components/logout";
-import { clientesAPI } from "../services/api";
+import AppShell from "../components/AppShell";
 import FormularioAgendamento from "../components/FormularioAgendamento";
 import CardAgendamento from "../components/CardAgendamento";
 import FiltrosAgendamento from "../components/FiltrosAgendamento";
@@ -177,7 +174,7 @@ export default function Agendamentos() {
       const buscaMatch =
         !filtros.busca ||
         agendamento.nome.toLowerCase().includes(filtros.busca.toLowerCase()) ||
-        agendamento.sobrenome
+        (agendamento.sobrenome || "")
           .toLowerCase()
           .includes(filtros.busca.toLowerCase()) ||
         agendamento.servico.toLowerCase().includes(filtros.busca.toLowerCase());
@@ -309,14 +306,15 @@ export default function Agendamentos() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <AppShell>
+      <main className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 py-7 lg:py-10">
         {/* Header */}
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-4xl font-bold text-slate-900 mb-2">
-                AGENDA
+              <p className="mb-2 text-xs font-bold uppercase tracking-[.18em] text-indigo-600">Visão geral</p>
+              <h1 className="text-3xl lg:text-4xl font-bold tracking-tight text-slate-950 mb-2">
+                Agenda
               </h1>
               <p className="text-slate-600">
                 Gerencie seus agendamentos de forma profissional
@@ -324,37 +322,13 @@ export default function Agendamentos() {
             </div>
 
             {/* AÇÕES */}
-            <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-end">
-              <button
-                onClick={logout}
-                className="bg-red-500 text-white flex items-center hover:bg-red-600 px-6 py-3 rounded-lg transition-colors"
-              >
-                Sair
-              </button>
-             
-              <button
-                onClick={() => navigate("/clientes")}
-                className="bg-white border border-slate-200 text-slate-900 px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-slate-50 transition-colors"
-              >
-                <Users className="w-5 h-5" />
-                Clientes
-              </button>
-
-              <button
-                onClick={() => navigate("/settings/whatsapp")}
-                className="bg-white border border-slate-200 text-slate-900 px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-slate-50 transition-colors"
-              >
-                <Settings className="w-5 h-5" />
-                WhatsApp
-              
-              </button>
-
+            <div className="flex sm:items-center sm:justify-end">
               <button
                 onClick={() => {
                   setAgendamentoEditando(null);
                   setMostrarFormulario(true);
                 }}
-                className="bg-slate-900 hover:bg-slate-800 text-white px-6 py-3 rounded-lg flex items-center gap-2 transition-colors"
+                className="btn-primary w-full sm:w-auto"
               >
                 <Plus className="w-5 h-5" />
                 Novo Agendamento
@@ -364,8 +338,8 @@ export default function Agendamentos() {
         </div>
 
         {/* Estatísticas */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 lg:gap-5 mb-8">
+          <div className="app-surface p-4 lg:p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-slate-600 mb-1">Total</p>
@@ -373,13 +347,13 @@ export default function Agendamentos() {
                   {estatisticas.total}
                 </p>
               </div>
-              <div className="h-12 w-12 rounded-full bg-slate-200 flex items-center justify-center">
-                <CalendarDays className="w-6 h-6 text-slate-700" />
+              <div className="h-11 w-11 rounded-xl bg-indigo-50 flex items-center justify-center">
+                <CalendarDays className="w-5 h-5 text-indigo-600" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+          <div className="app-surface p-4 lg:p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-slate-600 mb-1">Hoje</p>
@@ -387,13 +361,13 @@ export default function Agendamentos() {
                   {estatisticas.hoje}
                 </p>
               </div>
-              <div className="h-12 w-12 rounded-full bg-slate-300 flex items-center justify-center">
-                <Clock className="w-6 h-6 text-slate-700" />
+              <div className="h-11 w-11 rounded-xl bg-sky-50 flex items-center justify-center">
+                <Clock className="w-5 h-5 text-sky-600" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+          <div className="app-surface p-4 lg:p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-slate-600 mb-1">
@@ -403,13 +377,13 @@ export default function Agendamentos() {
                   {estatisticas.pendentes}
                 </p>
               </div>
-              <div className="h-12 w-12 rounded-full bg-slate-400 flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-white" />
+              <div className="h-11 w-11 rounded-xl bg-amber-50 flex items-center justify-center">
+                <TrendingUp className="w-5 h-5 text-amber-600" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+          <div className="app-surface p-4 lg:p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-slate-600 mb-1">
@@ -419,8 +393,8 @@ export default function Agendamentos() {
                   {estatisticas.concluidos}
                 </p>
               </div>
-              <div className="h-12 w-12 rounded-full bg-slate-800 flex items-center justify-center">
-                <CheckCircle2 className="w-6 h-6 text-white" />
+              <div className="h-11 w-11 rounded-xl bg-emerald-50 flex items-center justify-center">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600" />
               </div>
             </div>
           </div>
@@ -463,7 +437,7 @@ export default function Agendamentos() {
                 className={[
                   "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-colors",
                   visualizacao === "cards"
-                    ? "bg-slate-900 text-white"
+                    ? "bg-indigo-600 text-white"
                     : "text-slate-700 hover:bg-slate-50",
                 ].join(" ")}
               >
@@ -477,7 +451,7 @@ export default function Agendamentos() {
                 className={[
                   "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-colors",
                   visualizacao === "lista"
-                    ? "bg-slate-900 text-white"
+                    ? "bg-indigo-600 text-white"
                     : "text-slate-700 hover:bg-slate-50",
                 ].join(" ")}
               >
@@ -491,7 +465,7 @@ export default function Agendamentos() {
                 className={[
                   "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-colors",
                   visualizacao === "calendario"
-                    ? "bg-slate-900 text-white"
+                    ? "bg-indigo-600 text-white"
                     : "text-slate-700 hover:bg-slate-50",
                 ].join(" ")}
               >
@@ -504,7 +478,7 @@ export default function Agendamentos() {
 
         {/* Conteúdo */}
         <div>{renderConteudo()}</div>
-      </div>
+      </main>
 
       {/* ✅ MODAL DE DETALHES DO CALENDÁRIO (fora do renderConteudo) */}
       {mostrarDetalhes && agendamentoSelecionado && (
@@ -568,6 +542,6 @@ export default function Agendamentos() {
           </div>
         </div>
       )}
-    </div>
+    </AppShell>
   );
 }

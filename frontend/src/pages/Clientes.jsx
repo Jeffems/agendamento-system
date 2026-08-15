@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react";
 import { clientesAPI } from "../services/api";
+import AppShell from "../components/AppShell";
 
 const FORM_INICIAL = {
   nome: "",
@@ -159,8 +160,8 @@ export default function Clientes() {
   }, [clientes, busca]);
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <AppShell>
+      <main className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 py-7 lg:py-10">
         <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
           <div>
             <button
@@ -177,7 +178,8 @@ export default function Clientes() {
                 <Users className="w-6 h-6" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-slate-900">Clientes</h1>
+                <p className="text-xs font-bold uppercase tracking-[.18em] text-indigo-600">Relacionamento</p>
+                <h1 className="text-3xl font-bold tracking-tight text-slate-950">Clientes</h1>
                 <p className="text-slate-600">
                   Cadastre e gerencie seus clientes
                 </p>
@@ -188,14 +190,14 @@ export default function Clientes() {
           <button
             type="button"
             onClick={abrirNovoCliente}
-            className="bg-slate-900 hover:bg-slate-800 text-white px-6 py-3 rounded-lg flex items-center justify-center gap-2 transition-colors"
+            className="btn-primary"
           >
             <Plus className="w-5 h-5" />
             Novo cliente
           </button>
         </header>
 
-        <section className="bg-white border border-slate-200 rounded-xl shadow-sm p-5 mb-6">
+        <section className="app-surface p-4 mb-6">
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
             <input
@@ -203,14 +205,14 @@ export default function Clientes() {
               value={busca}
               onChange={(event) => setBusca(event.target.value)}
               placeholder="Buscar por nome, telefone ou e-mail..."
-              className="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-lg outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
+              className="app-input pl-12"
             />
           </div>
         </section>
 
         {mostrarFormulario && (
-          <section className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden mb-6">
-            <div className="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
+          <section className="app-surface overflow-hidden mb-6">
+            <div className="bg-slate-950 text-white px-6 py-4 flex items-center justify-between">
               <h2 className="font-semibold text-lg">
                 {clienteEditando ? "Editar cliente" : "Novo cliente"}
               </h2>
@@ -281,7 +283,7 @@ export default function Clientes() {
                 <button
                   type="submit"
                   disabled={salvando}
-                  className="px-6 py-2.5 bg-slate-900 text-white rounded-lg hover:bg-slate-800 disabled:opacity-50"
+                  className="btn-primary py-2.5"
                 >
                   {salvando
                     ? "Salvando..."
@@ -322,7 +324,7 @@ export default function Clientes() {
             {clientesFiltrados.map((cliente) => (
               <article
                 key={cliente.id}
-                className="bg-white border border-slate-200 rounded-xl shadow-sm p-5"
+                className="app-surface p-5 transition hover:-translate-y-0.5 hover:shadow-lg"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
@@ -381,8 +383,8 @@ export default function Clientes() {
             ))}
           </div>
         )}
-      </div>
-    </div>
+      </main>
+    </AppShell>
   );
 }
 
@@ -405,7 +407,7 @@ function Campo({
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
         required={obrigatorio}
-        className="w-full px-4 py-3 border border-slate-300 rounded-lg outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
+        className="app-input"
       />
     </div>
   );

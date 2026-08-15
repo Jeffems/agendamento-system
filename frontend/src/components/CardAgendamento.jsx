@@ -322,8 +322,8 @@ export default function CardAgendamento({
       whileHover={{ scale: 1.01 }}
       transition={{ duration: 0.2 }}
       className={[
-        "bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 border min-h-[190px] flex flex-col",
-        ehHoje ? "border-slate-900" : "border-slate-200",
+        "app-surface overflow-visible min-h-[190px] flex flex-col transition hover:-translate-y-0.5 hover:shadow-lg",
+        ehHoje ? "ring-1 ring-indigo-500" : "",
       ].join(" ")}
     >
       {/* Cabeçalho compacto */}
@@ -331,7 +331,7 @@ export default function CardAgendamento({
         className={[
           "px-5 py-4 flex-1 border-b",
           ehHoje
-            ? "bg-slate-900 border-slate-900 text-white"
+            ? "bg-gradient-to-br from-indigo-600 to-indigo-700 border-indigo-700 text-white"
             : "bg-slate-50 border-slate-200",
         ].join(" ")}
       >
@@ -408,13 +408,13 @@ export default function CardAgendamento({
             </button>
 
             {menuAberto && (
-              <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-10">
+              <div className="menu-panel">
                 <button
                   onClick={() => {
                     onEditar(agendamento);
                     setMenuAberto(false);
                   }}
-                  className="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm"
+                  className="menu-item"
                   type="button"
                 >
                   Editar
@@ -425,7 +425,7 @@ export default function CardAgendamento({
                     onMudarStatus(agendamento, "confirmado");
                     setMenuAberto(false);
                   }}
-                  className="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm"
+                  className="menu-item"
                   type="button"
                 >
                   Marcar como Confirmado
@@ -436,7 +436,7 @@ export default function CardAgendamento({
                     onMudarStatus(agendamento, "concluido");
                     setMenuAberto(false);
                   }}
-                  className="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm"
+                  className="menu-item"
                   type="button"
                 >
                   Marcar como Concluído
@@ -447,7 +447,7 @@ export default function CardAgendamento({
                     onEnviarLembrete(agendamento);
                     setMenuAberto(false);
                   }}
-                  className="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm"
+                  className="menu-item"
                   type="button"
                 >
                   Enviar Lembrete por Email

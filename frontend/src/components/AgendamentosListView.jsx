@@ -28,7 +28,7 @@ export default function AgendamentosListView({
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+    <div className="app-surface overflow-visible">
       <div className="overflow-x-auto">
         <table className="min-w-full">
           <thead className="bg-slate-50 border-b border-slate-200">
@@ -88,14 +88,14 @@ export default function AgendamentosListView({
                     </button>
 
                     {aberto && (
-                      <div className="absolute right-4 mt-2 w-56 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-20">
+                      <div className="menu-panel">
                         <button
                           type="button"
                           onClick={() => {
                             onEditar(a);
                             setMenuId(null);
                           }}
-                          className="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm"
+                          className="menu-item"
                         >
                           Editar
                         </button>
@@ -106,7 +106,7 @@ export default function AgendamentosListView({
                             onMudarStatus(a, "confirmado");
                             setMenuId(null);
                           }}
-                          className="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm"
+                          className="menu-item"
                         >
                           Marcar como Confirmado
                         </button>
@@ -117,7 +117,7 @@ export default function AgendamentosListView({
                             onMudarStatus(a, "concluido");
                             setMenuId(null);
                           }}
-                          className="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm"
+                          className="menu-item"
                         >
                           Marcar como Concluído
                         </button>
@@ -128,7 +128,7 @@ export default function AgendamentosListView({
                             onEnviarLembrete(a);
                             setMenuId(null);
                           }}
-                          className="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm"
+                          className="menu-item"
                         >
                           Enviar Lembrete por Email
                         </button>
@@ -139,7 +139,7 @@ export default function AgendamentosListView({
                             onWhatsApp?.(a);
                             setMenuId(null);
                           }}
-                          className="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm"
+                          className="menu-item"
                         >
                           Lembrar via WhatsApp
                         </button>
@@ -150,7 +150,7 @@ export default function AgendamentosListView({
                             onExcluir(a);
                             setMenuId(null);
                           }}
-                          className="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm text-red-600"
+                          className="menu-item text-red-600 hover:bg-red-50"
                         >
                           Excluir
                         </button>
