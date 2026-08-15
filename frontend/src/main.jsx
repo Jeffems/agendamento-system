@@ -18,6 +18,7 @@ import Termos from "./pages/Termos.jsx";
 import Privacidade from "./pages/Privacidade.jsx";
 import NotFound from "./pages/NotFound.jsx";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
+import ConversasWhatsApp from "./pages/ConversasWhatsApp.jsx";
 
 import "./index.css";
 
@@ -39,6 +40,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="/app" element={<App />} />
           <Route path="/clientes" element={<Clientes />} />
           <Route path="/settings/whatsapp" element={<WhatsappSettings />} />
+          <Route path="/conversas" element={<ConversasWhatsApp />} />
           <Route path="/configuracoes" element={<Configuracoes />} />
           <Route path="/assinatura" element={<Assinatura />} />
           <Route path="/admin/assinaturas" element={<AdminAssinaturas />} />

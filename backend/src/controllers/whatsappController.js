@@ -2,6 +2,7 @@ import prisma from "../lib/prisma.js";
 import { sendText, sendTemplate } from "../services/whatsappService.js";
 import { encrypt, decrypt } from "../utils/crypto.js";
 import crypto from "crypto";
+import { atualizarStatusMensagem, registrarMensagemEntrada, registrarMensagemSaida } from "../services/whatsappInboxService.js";
 
 function normalizarTelefoneBR(numero) {
   if (!numero) return null;
@@ -185,6 +186,18 @@ export async function sendTest(req, res) {
       ],
     });
 
+    const waMessageId = metaResp?.messages?.[0]?.id;
+    if (waMessageId) {
+      await registrarMensagemSaida({
+        usuarioId: userId,
+        contato: numeroDestino,
+        nome: "Cliente Teste",
+        waMessageId,
+        conteudo: "Lembrete de teste: Serviço Teste em 10/03/2026 às 14:00",
+        tipo: "template",
+      });
+    }
+
     await prisma.usuario.update({
       where: { id: userId },
       data: {
@@ -265,21 +278,18 @@ export async function webhookHandler(req, res) {
       return res.sendStatus(401);
     }
 
-    const entry = req.body?.entry?.[0];
-    const change = entry?.changes?.[0];
-    const value = change?.value;
-
-    const phoneNumberId = value?.metadata?.phone_number_id;
-    if (!phoneNumberId) return res.sendStatus(200);
-
-    const user = await prisma.usuario.findFirst({
-      where: { wa_phone_number_id: phoneNumberId },
-      select: { id: true },
-    });
-
-    if (!user) return res.sendStatus(200);
-
-    console.log("📩 webhook tenant userId:", user.id);
+    for (const entry of req.body?.entry || []) {
+      for (const change of entry?.changes || []) {
+        const value = change?.value;
+        const phoneNumberId = value?.metadata?.phone_number_id;
+        if (!phoneNumberId) continue;
+        const user = await prisma.usuario.findFirst({ where: { wa_phone_number_id: phoneNumberId }, select: { id: true } });
+        if (!user) continue;
+        const nomes = new Map((value?.contacts || []).map((c) => [c.wa_id, c.profile?.name]));
+        for (const mensagem of value?.messages || []) await registrarMensagemEntrada({ usuarioId: user.id, mensagem, nome: nomes.get(mensagem.from) });
+        for (const status of value?.statuses || []) await atualizarStatusMensagem(status);
+      }
+    }
 
     return res.sendStatus(200);
   } catch (err) {

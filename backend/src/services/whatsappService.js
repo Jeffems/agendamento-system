@@ -1,7 +1,9 @@
 import axios from "axios";
 
+const graphVersion = () => process.env.WHATSAPP_GRAPH_VERSION || "v20.0";
+
 export async function sendText({ phoneNumberId, accessToken, to, text }) {
-  const url = `https://graph.facebook.com/v20.0/${phoneNumberId}/messages`;
+  const url = `https://graph.facebook.com/${graphVersion()}/${phoneNumberId}/messages`;
 
   const resp = await axios.post(
     url,
@@ -31,7 +33,7 @@ export async function sendTemplate({
   lang = "pt_BR",
   components = [],
 }) {
-  const url = `https://graph.facebook.com/v20.0/${phoneNumberId}/messages`;
+  const url = `https://graph.facebook.com/${graphVersion()}/${phoneNumberId}/messages`;
 
   const resp = await axios.post(
     url,
@@ -54,5 +56,11 @@ export async function sendTemplate({
     }
   );
 
+  return resp.data;
+}
+
+export async function markMessageRead({ phoneNumberId, accessToken, messageId }) {
+  const url = `https://graph.facebook.com/${graphVersion()}/${phoneNumberId}/messages`;
+  const resp = await axios.post(url, { messaging_product: "whatsapp", status: "read", message_id: messageId }, { headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" }, timeout: 15000 });
   return resp.data;
 }

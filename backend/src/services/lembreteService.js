@@ -4,6 +4,7 @@ import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { ptBR } from "date-fns/locale";
 import prisma from "../lib/prisma.js";
 import { sendTemplate } from "./whatsappService.js";
+import { registrarMensagemSaida } from "./whatsappInboxService.js";
 import { decrypt } from "../utils/crypto.js";
 
 
@@ -222,6 +223,19 @@ async function enviarWhatsAppTemplate(agendamento) {
       },
     ],
   });
+
+  const waMessageId = response?.messages?.[0]?.id;
+  if (waMessageId) {
+    await registrarMensagemSaida({
+      usuarioId: agendamento.usuarioId,
+      contato: numeroDestino,
+      nome: `${agendamento.nome || ""} ${agendamento.sobrenome || ""}`.trim(),
+      waMessageId,
+      conteudo: `Lembrete: ${agendamento.servico || "Agendamento"} em ${dataFmt} às ${hora}`,
+      tipo: "template",
+      agendamentoId: agendamento.id,
+    });
+  }
 
   return response;
 }

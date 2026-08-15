@@ -45,6 +45,8 @@ model Usuario {
   agendamentos Agendamento[]
   clientes     Cliente[]
   servicos     Servico[]
+  conversas_whatsapp WhatsAppConversation[]
+  mensagens_whatsapp WhatsAppMessage[]
 
   nome_negocio              String?
   telefone_negocio          String?
@@ -98,12 +100,60 @@ model Agendamento {
   cliente   Cliente? @relation(fields: [clienteId], references: [id])
   servicoId String?
   servicoCadastro Servico? @relation(fields: [servicoId], references: [id])
+  mensagens_whatsapp WhatsAppMessage[]
 
   @@index([usuarioId])
   @@index([data_agendamento])
   @@index([usuarioId, data_agendamento])
   @@index([servicoId])
   @@map("agendamentos")
+}
+
+model WhatsAppConversation {
+  id                   String   @id @default(uuid())
+  usuarioId            String
+  contato               String
+  nome                  String?
+  ultima_mensagem       String?
+  ultima_mensagem_em    DateTime @default(now()) @db.Timestamptz(6)
+  nao_lidas             Int      @default(0)
+  janela_atendimento_ate DateTime? @db.Timestamptz(6)
+  created_at            DateTime @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime @updatedAt @db.Timestamptz(6)
+
+  usuario  Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  mensagens WhatsAppMessage[]
+
+  @@unique([usuarioId, contato])
+  @@index([usuarioId, ultima_mensagem_em])
+  @@map("whatsapp_conversations")
+}
+
+model WhatsAppMessage {
+  id              String   @id @default(uuid())
+  usuarioId       String
+  conversationId  String
+  agendamentoId   String?
+  wa_message_id   String   @unique
+  direcao         String
+  tipo            String   @default("text")
+  conteudo        String?
+  status          String   @default("accepted")
+  erro_codigo     String?
+  erro_mensagem   String?
+  mensagem_em     DateTime @db.Timestamptz(6)
+  entregue_em     DateTime? @db.Timestamptz(6)
+  lida_em         DateTime? @db.Timestamptz(6)
+  created_at      DateTime @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime @updatedAt @db.Timestamptz(6)
+
+  usuario      Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  conversa     WhatsAppConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  agendamento Agendamento? @relation(fields: [agendamentoId], references: [id], onDelete: SetNull)
+
+  @@index([conversationId, mensagem_em])
+  @@index([usuarioId, status])
+  @@map("whatsapp_messages")
 }
 
 model StripeEvent {

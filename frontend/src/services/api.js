@@ -67,6 +67,13 @@ export const clientesAPI = {
   deletar: (id) => api.delete(`/api/clientes/${id}`),
 };
 
+export const whatsappInboxAPI = {
+  listarConversas: (busca = "") => api.get("/api/whatsapp-inbox/conversas", { params: busca ? { busca } : {} }),
+  listarMensagens: (conversaId, cursor) => api.get(`/api/whatsapp-inbox/conversas/${conversaId}/mensagens`, { params: cursor ? { cursor } : {} }),
+  responder: (conversaId, texto) => api.post(`/api/whatsapp-inbox/conversas/${conversaId}/mensagens`, { texto }),
+  marcarLida: (conversaId) => api.post(`/api/whatsapp-inbox/conversas/${conversaId}/lida`),
+};
+
 export const configuracoesAPI = {
   obter: () => api.get("/api/configuracoes"),
   atualizar: (dados) => api.put("/api/configuracoes", dados),

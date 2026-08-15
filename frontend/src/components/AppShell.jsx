@@ -7,6 +7,7 @@ import { brand } from "../config/brand";
 const links = [
   { to: "/app", label: "Agenda", icon: CalendarDays, end: true },
   { to: "/clientes", label: "Clientes", icon: Users },
+  { to: "/conversas", label: "Conversas", icon: MessageCircle },
   { to: "/settings/whatsapp", label: "WhatsApp", icon: MessageCircle },
   { to: "/configuracoes", label: "Configurações", icon: Settings2 },
   { to: "/assinatura", label: "Assinatura", icon: CreditCard },
